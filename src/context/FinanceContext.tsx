@@ -157,25 +157,35 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // 2. Multi-tab and Multi-device sync on focus / visibility change
+    // 2. Periodic sync polling (Every 4 seconds) to guarantee instant update even on mobile sleep/reconnect
+    const pollInterval = setInterval(() => {
+      loadData();
+    }, 4000);
+
+    // 3. Multi-tab and Multi-device sync on focus / visibility change / online
     const handleSyncEvent = () => {
       loadData();
     };
 
     window.addEventListener('storage', handleSyncEvent);
     window.addEventListener('focus', handleSyncEvent);
-    document.addEventListener('visibilitychange', () => {
+    window.addEventListener('online', handleSyncEvent);
+    const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
         loadData();
       }
-    });
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
+      clearInterval(pollInterval);
       if (supabase && channel) {
         supabase.removeChannel(channel);
       }
       window.removeEventListener('storage', handleSyncEvent);
       window.removeEventListener('focus', handleSyncEvent);
+      window.removeEventListener('online', handleSyncEvent);
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [loadData]);
 

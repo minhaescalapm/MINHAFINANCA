@@ -24,12 +24,15 @@ export function getSupabaseCredentials(): { url: string; anonKey: string; isCust
   const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
   const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
-  const url = customUrl || envUrl || '';
-  const anonKey = customKey || envKey || '';
+  let cleanedUrl = (customUrl || envUrl || '').trim();
+  if (cleanedUrl) {
+    cleanedUrl = cleanedUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+  }
+  const anonKey = (customKey || envKey || '').trim();
 
   return {
-    url: url.trim(),
-    anonKey: anonKey.trim(),
+    url: cleanedUrl,
+    anonKey: anonKey,
     isCustom: Boolean(customUrl || customKey),
   };
 }
