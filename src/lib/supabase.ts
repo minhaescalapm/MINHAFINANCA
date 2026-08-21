@@ -968,9 +968,10 @@ export async function pagarParcelaContaAPagar(
 // ----------------------------------------------------
 // SQL DDL SCHEMA GENERATOR FOR SUPABASE
 // ----------------------------------------------------
-export const SUPABASE_SQL_SCHEMA = `-- ==========================================
--- SCRIPT SQL PARA CRIAR TABELAS NO SUPABASE
--- ==========================================
+export const SUPABASE_SQL_SCHEMA = `-- ==========================================================
+-- SCRIPT SQL COMPLETO PARA CRIAR O BANCO DE DADOS NO SUPABASE
+-- Execute no SQL Editor do Supabase (supabase.com/dashboard)
+-- ==========================================================
 
 -- 1. Tabela de Usuários
 CREATE TABLE IF NOT EXISTS usuarios (
@@ -1001,6 +1002,8 @@ CREATE TABLE IF NOT EXISTS cartoes_credito (
     nome TEXT NOT NULL,
     bandeira TEXT NOT NULL,
     limite_total NUMERIC(15,2) NOT NULL,
+    fatura_atual NUMERIC(15,2) DEFAULT 0,
+    total_gasto_acumulado NUMERIC(15,2) DEFAULT 0,
     dia_vencimento INTEGER NOT NULL,
     melhor_dia_compra INTEGER NOT NULL,
     cor TEXT,
@@ -1037,6 +1040,7 @@ CREATE TABLE IF NOT EXISTS devedores (
     telefone TEXT,
     item_servico TEXT NOT NULL,
     valor_total NUMERIC(15,2) NOT NULL,
+    valor_parcela NUMERIC(15,2),
     qtd_parcelas INTEGER NOT NULL,
     parcelas_pagas INTEGER DEFAULT 0,
     valor_pago NUMERIC(15,2) DEFAULT 0,
@@ -1063,7 +1067,36 @@ CREATE TABLE IF NOT EXISTS contas_a_pagar (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- ==========================================================
+-- HABILITAR REALTIME (SINCRONIZAÇÃO INSTANTÂNEA CELULAR/PC)
+-- ==========================================================
+ALTER PUBLICATION supabase_realtime ADD TABLE usuarios;
+ALTER PUBLICATION supabase_realtime ADD TABLE contas_bancarias;
+ALTER PUBLICATION supabase_realtime ADD TABLE cartoes_credito;
+ALTER PUBLICATION supabase_realtime ADD TABLE transacoes;
+ALTER PUBLICATION supabase_realtime ADD TABLE devedores;
+ALTER PUBLICATION supabase_realtime ADD TABLE contas_a_pagar;
+
+-- ==========================================================
+-- POLÍTICAS DE ACESSO (PERMITIR LEITURA E GRAVAÇÃO COM CHAVE ANON)
+-- ==========================================================
+ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contas_bancarias ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cartoes_credito ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transacoes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE devedores ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contas_a_pagar ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Acesso completo usuarios" ON usuarios FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acesso completo contas_bancarias" ON contas_bancarias FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acesso completo cartoes_credito" ON cartoes_credito FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acesso completo transacoes" ON transacoes FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acesso completo devedores" ON devedores FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Acesso completo contas_a_pagar" ON contas_a_pagar FOR ALL USING (true) WITH CHECK (true);
+
+-- ==========================================================
 -- USUÁRIO MASTER INICIAL (ACESSO TOTAL)
+-- ==========================================================
 INSERT INTO usuarios (id, nome, telefone, senha)
 VALUES ('usr_master_21975151937', 'Administrador Master', '21975151937', '050805')
 ON CONFLICT (telefone) DO NOTHING;

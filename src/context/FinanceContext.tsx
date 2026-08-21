@@ -26,6 +26,7 @@ import {
   saveContaAPagar,
   deleteContaAPagar,
   pagarParcelaContaAPagar,
+  getSupabaseClient,
 } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
@@ -129,6 +130,51 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     loadData();
+
+    // 1. Supabase Realtime Subscription (Instant live sync across Notebook, Phone, Vercel)
+    const supabase = getSupabaseClient();
+    let channel: any = null;
+
+    if (supabase) {
+      try {
+        channel = supabase
+          .channel('schema-db-changes')
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+            },
+            () => {
+              loadData();
+            }
+          )
+          .subscribe();
+      } catch (err) {
+        console.warn('Realtime subscription error:', err);
+      }
+    }
+
+    // 2. Multi-tab and Multi-device sync on focus / visibility change
+    const handleSyncEvent = () => {
+      loadData();
+    };
+
+    window.addEventListener('storage', handleSyncEvent);
+    window.addEventListener('focus', handleSyncEvent);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        loadData();
+      }
+    });
+
+    return () => {
+      if (supabase && channel) {
+        supabase.removeChannel(channel);
+      }
+      window.removeEventListener('storage', handleSyncEvent);
+      window.removeEventListener('focus', handleSyncEvent);
+    };
   }, [loadData]);
 
   // Real-time balance for individual bank account
