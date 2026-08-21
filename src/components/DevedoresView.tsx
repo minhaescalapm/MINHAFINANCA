@@ -34,6 +34,8 @@ import {
   Car,
   Tag,
   ShieldAlert,
+  RotateCcw,
+  Undo2,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -45,6 +47,7 @@ export function DevedoresView() {
     addDevedor,
     deleteDevedorItem,
     receberParcelaDevedor,
+    desfazerParcelaDevedor,
     isPrivacyMode,
   } = useFinance();
 
@@ -90,6 +93,25 @@ export function DevedoresView() {
     whatsappText: string;
   } | null>(null);
   const [copiedReceipt, setCopiedReceipt] = useState(false);
+
+  // Modal para Excluir / Desfazer prestação paga (caso clique por engano)
+  const [undoConfirmModal, setUndoConfirmModal] = useState<{
+    devedor: Devedor;
+    parcelaNum: number;
+    dataVencimento?: string;
+  } | null>(null);
+  const [isUndoing, setIsUndoing] = useState(false);
+
+  const handleConfirmUndoPayment = async () => {
+    if (!undoConfirmModal) return;
+    setIsUndoing(true);
+    try {
+      await desfazerParcelaDevedor(undoConfirmModal.devedor.id, 1);
+      setUndoConfirmModal(null);
+    } finally {
+      setIsUndoing(false);
+    }
+  };
 
   const formatMoney = (val: number) => {
     if (isPrivacyMode) return '••••••';
@@ -770,6 +792,26 @@ export function DevedoresView() {
                   </button>
                 </div>
 
+                {/* Se houver parcelas pagas, botão direto para desfazer pagamento caso tenha apertado por engano */}
+                {dev.parcelas_pagas > 0 && (
+                  <div className="flex justify-end pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setUndoConfirmModal({
+                          devedor: dev,
+                          parcelaNum: dev.parcelas_pagas,
+                        })
+                      }
+                      className="text-[11px] text-rose-400/90 hover:text-rose-300 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all cursor-pointer"
+                      title="Excluir último pagamento recebido e retornar data da parcela ao cronograma normal"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
+                      <span>Excluir / Desfazer prestação paga (#{dev.parcelas_pagas})</span>
+                    </button>
+                  </div>
+                )}
+
                 {/* 📋 EXPANDABLE ACCORDION: PRESTAÇÕES COM DATA DE REFERÊNCIA & MULTAS */}
                 {isExpanded && (
                   <div className="pt-3 border-t border-zinc-900 space-y-3">
@@ -865,21 +907,42 @@ export function DevedoresView() {
                               </div>
                             </div>
 
-                            {/* WhatsApp Button on Paid Installments */}
+                            {/* Action Buttons on Installments */}
                             <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
                               {item.isPaga ? (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleClickPaidInstallment(dev, item.numero);
-                                  }}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs shadow-md transition-all hover:scale-105"
-                                  title="Abrir WhatsApp com comprovante e data de referência"
-                                >
-                                  <MessageCircle className="w-3.5 h-3.5" />
-                                  <span>WhatsApp</span>
-                                </button>
+                                <div className="flex items-center gap-1.5">
+                                  {/* Botão de Excluir / Desfazer Prestação Paga (caso clique por engano) */}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setUndoConfirmModal({
+                                        devedor: dev,
+                                        parcelaNum: item.numero,
+                                        dataVencimento: item.dataVencimentoFormatada,
+                                      });
+                                    }}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 hover:text-rose-100 font-bold text-xs transition-all shadow-sm cursor-pointer"
+                                    title="Excluir ou desfazer este pagamento de prestação caso tenha clicado por engano"
+                                  >
+                                    <RotateCcw className="w-3.5 h-3.5 text-rose-400" />
+                                    <span className="hidden sm:inline">Excluir Pagamento</span>
+                                    <span className="sm:hidden">Desfazer</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleClickPaidInstallment(dev, item.numero);
+                                    }}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs shadow-md transition-all hover:scale-105 cursor-pointer"
+                                    title="Abrir WhatsApp com comprovante e data de referência"
+                                  >
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                    <span>WhatsApp</span>
+                                  </button>
+                                </div>
                               ) : (
                                 <button
                                   type="button"
@@ -1291,6 +1354,96 @@ export function DevedoresView() {
               >
                 <Send className="w-4 h-4" />
                 <span>Abrir WhatsApp</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ⚠️ MODAL DE CONFIRMAÇÃO: EXCLUIR / DESFAZER PRESTAÇÃO PAGA */}
+      {undoConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-md shadow-2xl p-6 space-y-4 my-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <div className="flex items-center gap-2 text-rose-400">
+                <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                  <RotateCcw className="w-4 h-4 text-rose-400" />
+                </div>
+                <h3 className="text-base font-bold text-zinc-100">Excluir Prestação Paga</h3>
+              </div>
+              <button
+                onClick={() => setUndoConfirmModal(null)}
+                className="text-zinc-400 hover:text-zinc-200 p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-sm text-zinc-300">
+              <p className="text-xs text-zinc-400">
+                Você clicou sem querer ou deseja cancelar o pagamento da{' '}
+                <strong className="text-zinc-100">
+                  Prestação #{undoConfirmModal.parcelaNum}
+                </strong>{' '}
+                de{' '}
+                <strong className="text-emerald-400">
+                  {undoConfirmModal.devedor.nome}
+                </strong>{' '}
+                ({undoConfirmModal.devedor.item_servico})?
+              </p>
+
+              <div className="bg-zinc-950 p-3.5 rounded-2xl border border-zinc-800 space-y-2 text-xs font-mono">
+                <div className="flex justify-between text-zinc-400">
+                  <span>Valor a estornar:</span>
+                  <span className="font-bold text-rose-400">
+                    -{' '}
+                    {formatMoney(
+                      undoConfirmModal.devedor.valor_parcela ||
+                        undoConfirmModal.devedor.valor_total /
+                          Math.max(1, undoConfirmModal.devedor.qtd_parcelas)
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between text-zinc-400">
+                  <span>Parcelas pagas:</span>
+                  <span className="font-bold text-zinc-200">
+                    {undoConfirmModal.devedor.parcelas_pagas} →{' '}
+                    {Math.max(0, undoConfirmModal.devedor.parcelas_pagas - 1)}
+                  </span>
+                </div>
+                {undoConfirmModal.dataVencimento && (
+                  <div className="flex justify-between text-zinc-400 pt-1 border-t border-zinc-900">
+                    <span>Data de Referência:</span>
+                    <span className="font-bold text-emerald-400">
+                      {undoConfirmModal.dataVencimento}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-rose-950/30 border border-rose-500/30 p-3 rounded-xl text-[11px] text-rose-200 leading-relaxed">
+                ✅ <strong>Retorno ao Cronograma Correto:</strong> O status da parcela voltará imediatamente para <strong>A PAGAR (EM DIA)</strong> e o cronograma de segunda a sexta voltará para a data certa.
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setUndoConfirmModal(null)}
+                disabled={isUndoing}
+                className="flex-1 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-colors"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmUndoPayment}
+                disabled={isUndoing}
+                className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 active:bg-rose-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-rose-950/40 transition-all disabled:opacity-50"
+              >
+                <RotateCcw className={`w-4 h-4 ${isUndoing ? 'animate-spin' : ''}`} />
+                <span>{isUndoing ? 'Estornando...' : 'Sim, Excluir Pagamento'}</span>
               </button>
             </div>
           </div>

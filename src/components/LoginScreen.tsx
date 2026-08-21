@@ -96,15 +96,21 @@ export function LoginScreen({ onOpenSupabaseConfig }: LoginScreenProps) {
       <div className="w-full max-w-md z-10">
         {/* Brand Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-xl mb-4 relative group">
-            <div className="absolute inset-0 bg-emerald-500/10 rounded-2xl group-hover:bg-emerald-500/20 transition-colors" />
-            <ShieldCheck className="w-8 h-8 text-emerald-400 relative z-10" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-zinc-900 border-2 border-emerald-500/30 shadow-2xl mb-4 relative overflow-hidden group">
+            <img
+              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80"
+              alt="Contas do Mês"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover rounded-2xl"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/60 via-transparent to-transparent" />
+            <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-zinc-950 shadow-sm" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-100 flex items-center justify-center gap-2">
-            Gestão Financeira <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono">PWA</span>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-100 flex items-center justify-center gap-2">
+            Contas do Mês <span className="text-xs px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono">PRO</span>
           </h1>
           <p className="text-sm text-zinc-400 mt-1.5">
-            Controle tático de fluxo de caixa, cartões, devedores e contas a pagar
+            Gestão financeira de contas a pagar, devedores, cartões e fluxo de caixa
           </p>
         </div>
 

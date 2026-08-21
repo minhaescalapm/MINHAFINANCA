@@ -22,6 +22,7 @@ import {
   saveDevedor,
   deleteDevedor,
   registrarPagamentoDevedor,
+  desfazerPagamentoDevedor,
   getContasAPagar,
   saveContaAPagar,
   deleteContaAPagar,
@@ -63,6 +64,7 @@ interface FinanceContextType {
   addDevedor: (dev: Omit<Devedor, 'id' | 'created_at'> & { id?: string }) => Promise<void>;
   deleteDevedorItem: (devId: string) => Promise<void>;
   receberParcelaDevedor: (devedorId: string, valorParcela: number, contaDestinoId: string, obs?: string) => Promise<void>;
+  desfazerParcelaDevedor: (devedorId: string, qtdParcelas?: number) => Promise<void>;
 
   addContaPagar: (cap: Omit<ContaAPagar, 'id' | 'created_at'> & { id?: string }) => Promise<void>;
   deleteContaPagarItem: (capId: string) => Promise<void>;
@@ -501,6 +503,33 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const desfazerParcelaDevedor = async (devedorId: string, qtdParcelas: number = 1) => {
+    try {
+      const targetDev = devedores.find((d) => d.id === devedorId);
+      if (!targetDev) return;
+
+      if (targetDev.parcelas_pagas <= 0) {
+        showInfo('Nenhuma Parcela Paga', 'Não há prestações pagas para estornar.');
+        return;
+      }
+
+      const { updatedDevedor } = await desfazerPagamentoDevedor(targetDev, qtdParcelas);
+
+      // Atualiza states
+      setDevedores((prev) => prev.map((d) => (d.id === devedorId ? updatedDevedor : d)));
+
+      // Recarrega transações para refletir a remoção da entrada de caixa
+      await loadData();
+
+      showSuccess(
+        'Pagamento Excluído/Desfeito!',
+        `A prestação voltou a constar como pendente na data correta do cronograma.`
+      );
+    } catch (e: any) {
+      showError('Erro ao Desfazer Pagamento', e?.message);
+    }
+  };
+
   // Contas a Pagar Actions
   const addContaPagar = async (capData: Omit<ContaAPagar, 'id' | 'created_at'> & { id?: string }) => {
     try {
@@ -587,6 +616,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         addDevedor,
         deleteDevedorItem,
         receberParcelaDevedor,
+        desfazerParcelaDevedor,
         addContaPagar,
         deleteContaPagarItem,
         pagarParcelaConta,

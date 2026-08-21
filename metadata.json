@@ -1,6 +1,6 @@
 {
-  "name": "Gestão Financeira PWA",
-  "description": "Aplicativo PWA de Gestão Financeira Pessoal e Empresarial em Dark Mode tático com controle de contas, cartões, fluxo de caixa, devedores e contas a pagar.",
+  "name": "Contas do Mês",
+  "description": "Aplicativo Contas do Mês - Gestão financeira completa, fluxo de caixa, cartões, devedores com cronograma de segunda a sexta e contas a pagar.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -126,22 +126,23 @@ export function Dashboard({
         <div className="flex items-center gap-3">
           <div className="relative">
             <img
-              src={user?.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=user'}
+              src={user?.avatar_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80'}
               alt={user?.nome}
-              className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-800 object-cover"
+              referrerPolicy="no-referrer"
+              className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-700/80 object-cover shadow-lg"
             />
-            <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-zinc-950" />
+            <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-zinc-950 shadow-sm" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-base font-bold text-zinc-100 leading-tight">
-                {user?.nome || 'Usuário'}
+                {user?.nome || 'Administrador'}
               </h1>
-              <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 font-mono">
-                {user?.telefone.replace(/\D/g, '').slice(-4) || 'PWA'}
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono border border-emerald-500/20">
+                PRO
               </span>
             </div>
-            <p className="text-xs text-zinc-400">Painel Financeiro Tático</p>
+            <p className="text-xs text-zinc-400 font-medium">Contas do Mês</p>
           </div>
         </div>
 

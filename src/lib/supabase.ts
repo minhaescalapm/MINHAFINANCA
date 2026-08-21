@@ -80,7 +80,7 @@ export const INITIAL_SEED_DATA = {
       nome: 'Administrador Master',
       telefone: '21975151937',
       senha: '050805',
-      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+      avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80',
       created_at: new Date().toISOString(),
     },
   ] as Usuario[],
@@ -852,6 +852,65 @@ export async function registrarPagamentoDevedor(
   });
 
   return { updatedDevedor, transacao };
+}
+
+/**
+ * Desfaz/Exclui o pagamento de uma parcela de devedor (caso o usuário tenha clicado por engano)
+ * e retorna os dias de cobrança ao cronograma correto.
+ */
+export async function desfazerPagamentoDevedor(
+  devedor: Devedor,
+  qtdParcelasADesfazer: number = 1
+): Promise<{ updatedDevedor: Devedor }> {
+  if (devedor.parcelas_pagas <= 0) {
+    return { updatedDevedor: devedor };
+  }
+
+  const valorUnitParcela =
+    devedor.valor_parcela || devedor.valor_total / Math.max(1, devedor.qtd_parcelas);
+  const qtdEstorno = Math.min(devedor.parcelas_pagas, Math.max(1, qtdParcelasADesfazer));
+  const novasParcelasPagas = Math.max(0, devedor.parcelas_pagas - qtdEstorno);
+  const valorEstorno = valorUnitParcela * qtdEstorno;
+  const novoValorPago = Math.max(0, devedor.valor_pago - valorEstorno);
+  const novoStatus = novasParcelasPagas === 0 ? ('pendente' as const) : ('parcial' as const);
+
+  const updatedDevedor: Devedor = {
+    ...devedor,
+    valor_pago: novoValorPago,
+    parcelas_pagas: novasParcelasPagas,
+    status: novoStatus,
+  };
+
+  await saveDevedor(updatedDevedor);
+
+  // Remove a última transação de entrada associada a esse devedor se existir
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      const { data: lastTx } = await supabase
+        .from('transacoes')
+        .select('id')
+        .eq('devedor_id', devedor.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (lastTx?.id) {
+        await supabase.from('transacoes').delete().eq('id', lastTx.id);
+      }
+    } catch (e) {
+      console.warn('Erro ao remover transacao vinculada:', e);
+    }
+  }
+
+  const db = getLocalDB();
+  const txIdx = db.transacoes.findIndex((t) => t.devedor_id === devedor.id);
+  if (txIdx >= 0) {
+    db.transacoes.splice(txIdx, 1);
+    saveLocalDB(db);
+  }
+
+  return { updatedDevedor };
 }
 
 // ----------------------------------------------------
