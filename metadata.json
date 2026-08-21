@@ -1,0 +1,6 @@
+{
+  "name": "Gestão Financeira PWA",
+  "description": "Aplicativo PWA de Gestão Financeira Pessoal e Empresarial em Dark Mode tático com controle de contas, cartões, fluxo de caixa, devedores e contas a pagar.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
