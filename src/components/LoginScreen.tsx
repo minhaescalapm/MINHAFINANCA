@@ -9,17 +9,12 @@ import {
   LogIn,
   UserPlus,
   Zap,
-  Database,
   User,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-interface LoginScreenProps {
-  onOpenSupabaseConfig: () => void;
-}
-
-export function LoginScreen({ onOpenSupabaseConfig }: LoginScreenProps) {
-  const { login, register, quickDemoLogin, isLoading, supabaseConfig } = useAuth();
+export function LoginScreen() {
+  const { login, register, quickDemoLogin, isLoading } = useAuth();
   const [isRegisterMode, setIsRegisterMode] = useState(false);
 
   // Form states
@@ -77,21 +72,6 @@ export function LoginScreen({ onOpenSupabaseConfig }: LoginScreenProps) {
       {/* Tactical Ambient Glow Elements */}
       <div className="absolute -top-32 -left-32 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Supabase Indicator Button */}
-      <button
-        id="btn-supabase-config-trigger"
-        onClick={onOpenSupabaseConfig}
-        className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition-all backdrop-blur-sm"
-      >
-        <Database className="w-3.5 h-3.5 text-emerald-400" />
-        <span>{supabaseConfig.url ? 'Supabase Conectado' : 'Configurar Supabase'}</span>
-        <span
-          className={`w-2 h-2 rounded-full ${
-            supabaseConfig.url ? 'bg-emerald-500 animate-pulse' : 'bg-yellow-500'
-          }`}
-        />
-      </button>
 
       <div className="w-full max-w-md z-10">
         {/* Brand Header */}

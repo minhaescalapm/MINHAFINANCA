@@ -18,7 +18,6 @@ import {
   Clock,
   Landmark,
   ChevronRight,
-  Database,
   Calendar,
   LogOut,
   BellRing,
@@ -31,7 +30,6 @@ interface DashboardProps {
   onOpenNewDevedor: () => void;
   onOpenNewContaPagar: () => void;
   onOpenNewConta: () => void;
-  onOpenSupabaseConfig: () => void;
 }
 
 export function Dashboard({
@@ -40,9 +38,8 @@ export function Dashboard({
   onOpenNewDevedor,
   onOpenNewContaPagar,
   onOpenNewConta,
-  onOpenSupabaseConfig,
 }: DashboardProps) {
-  const { user, logout, supabaseConfig } = useAuth();
+  const { user, logout } = useAuth();
   const {
     resumo,
     transacoes,
@@ -178,27 +175,6 @@ export function Dashboard({
             <LogOut className="w-4 h-4" />
           </button>
         </div>
-      </div>
-
-      {/* Supabase Status Banner */}
-      <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between text-xs">
-        <div className="flex items-center gap-2">
-          <span
-            className={`w-2 h-2 rounded-full ${
-              supabaseConfig.url ? 'bg-emerald-500 animate-pulse' : 'bg-yellow-500'
-            }`}
-          />
-          <span className="text-zinc-300 font-medium">
-            {supabaseConfig.url ? 'Supabase Conectado' : 'Modo Local-First & Fallback Ativo'}
-          </span>
-        </div>
-        <button
-          onClick={onOpenSupabaseConfig}
-          className="text-zinc-400 hover:text-emerald-400 text-[11px] font-semibold flex items-center gap-1 transition-colors"
-        >
-          <Database className="w-3 h-3" />
-          <span>Configurar</span>
-        </button>
       </div>
 
       {/* 4 CARDS DE RESUMO FINANCEIRO */}

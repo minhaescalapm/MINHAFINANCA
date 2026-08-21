@@ -11,14 +11,12 @@ import { DevedoresView } from './components/DevedoresView';
 import { ContasAPagarView } from './components/ContasAPagarView';
 import { ExtratoView } from './components/ExtratoView';
 import { TransactionModal } from './components/TransactionModal';
-import { SupabaseConfigModal } from './components/SupabaseConfigModal';
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const { devedores, contasAPagar } = useFinance();
 
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
-  const [isSupabaseModalOpen, setIsSupabaseModalOpen] = useState(false);
 
   // Global Transaction Modal state
   const [isTrxModalOpen, setIsTrxModalOpen] = useState(false);
@@ -41,15 +39,7 @@ function AppContent() {
 
   // 1. Unauthenticated State (All screens blocked)
   if (!isAuthenticated) {
-    return (
-      <>
-        <LoginScreen onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)} />
-        <SupabaseConfigModal
-          isOpen={isSupabaseModalOpen}
-          onClose={() => setIsSupabaseModalOpen(false)}
-        />
-      </>
-    );
+    return <LoginScreen />;
   }
 
   // 2. Authenticated App
@@ -67,7 +57,6 @@ function AppContent() {
             onOpenNewDevedor={() => setActiveTab('devedores')}
             onOpenNewContaPagar={() => setActiveTab('contas_pagar')}
             onOpenNewConta={() => setActiveTab('contas_cartoes')}
-            onOpenSupabaseConfig={() => setIsSupabaseModalOpen(true)}
           />
         )}
 
@@ -97,12 +86,6 @@ function AppContent() {
         isOpen={isTrxModalOpen}
         onClose={() => setIsTrxModalOpen(false)}
         initialType={trxInitialType}
-      />
-
-      {/* Supabase Connection & SQL DDL Modal */}
-      <SupabaseConfigModal
-        isOpen={isSupabaseModalOpen}
-        onClose={() => setIsSupabaseModalOpen(false)}
       />
     </div>
   );
