@@ -28,6 +28,7 @@ import {
   deleteContaAPagar,
   pagarParcelaContaAPagar,
   getSupabaseClient,
+  syncLocalSeedToSupabaseIfEmpty,
 } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
@@ -109,6 +110,9 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
 
     setIsLoadingData(true);
     try {
+      // If Supabase is empty, sync seed/local data to Supabase first
+      await syncLocalSeedToSupabaseIfEmpty(user.id);
+
       const [contasData, cartoesData, trxData, devData, capData] = await Promise.all([
         getContasBancarias(user.id),
         getCartoesCredito(user.id),

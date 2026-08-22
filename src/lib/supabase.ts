@@ -399,8 +399,36 @@ function saveLocalDB(db: typeof INITIAL_SEED_DATA) {
   localStorage.setItem(STORAGE_KEYS.LOCAL_DB, JSON.stringify(db));
 }
 
-export function resetLocalDatabaseToSeed() {
-  localStorage.setItem(STORAGE_KEYS.LOCAL_DB, JSON.stringify(INITIAL_SEED_DATA));
+/**
+ * Sincroniza dados locais para o Supabase se o Supabase ainda não tiver os registros
+ */
+export async function syncLocalSeedToSupabaseIfEmpty(userId: string) {
+  const supabase = getSupabaseClient();
+  if (!supabase) return;
+
+  try {
+    const { data: existingTrx } = await supabase.from('transacoes').select('id').limit(1);
+    if (!existingTrx || existingTrx.length === 0) {
+      const db = getLocalDB();
+      if (db.contas_bancarias.length > 0) {
+        await supabase.from('contas_bancarias').upsert(db.contas_bancarias);
+      }
+      if (db.cartoes_credito.length > 0) {
+        await supabase.from('cartoes_credito').upsert(db.cartoes_credito);
+      }
+      if (db.devedores.length > 0) {
+        await supabase.from('devedores').upsert(db.devedores);
+      }
+      if (db.contas_a_pagar.length > 0) {
+        await supabase.from('contas_a_pagar').upsert(db.contas_a_pagar);
+      }
+      if (db.transacoes.length > 0) {
+        await supabase.from('transacoes').upsert(db.transacoes);
+      }
+    }
+  } catch (e) {
+    console.warn('Sync seed to Supabase warning:', e);
+  }
 }
 
 // ----------------------------------------------------
@@ -556,17 +584,20 @@ export async function getContasBancarias(userId: string): Promise<ContaBancaria[
       const { data, error } = await supabase
         .from('contas_bancarias')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (!error && data) return data as ContaBancaria[];
+      if (!error && data) {
+        // Filter by user or seed user
+        const list = data as ContaBancaria[];
+        return list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+      }
     } catch (e) {
       console.warn('Supabase error on getContasBancarias:', e);
     }
   }
 
   const db = getLocalDB();
-  return db.contas_bancarias.filter((c) => c.user_id === userId);
+  return db.contas_bancarias.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
 }
 
 export async function saveContaBancaria(conta: Omit<ContaBancaria, 'id' | 'created_at'> & { id?: string }): Promise<ContaBancaria> {
@@ -625,17 +656,19 @@ export async function getCartoesCredito(userId: string): Promise<CartaoCredito[]
       const { data, error } = await supabase
         .from('cartoes_credito')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (!error && data) return data as CartaoCredito[];
+      if (!error && data) {
+        const list = data as CartaoCredito[];
+        return list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+      }
     } catch (e) {
       console.warn('Supabase error on getCartoesCredito:', e);
     }
   }
 
   const db = getLocalDB();
-  return db.cartoes_credito.filter((c) => c.user_id === userId);
+  return db.cartoes_credito.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
 }
 
 export async function saveCartaoCredito(cartao: Omit<CartaoCredito, 'id' | 'created_at'> & { id?: string }): Promise<CartaoCredito> {
@@ -694,17 +727,19 @@ export async function getTransacoes(userId: string): Promise<Transacao[]> {
       const { data, error } = await supabase
         .from('transacoes')
         .select('*')
-        .eq('user_id', userId)
         .order('data', { ascending: false });
 
-      if (!error && data) return data as Transacao[];
+      if (!error && data) {
+        const list = data as Transacao[];
+        return list.filter((t) => t.user_id === userId || t.user_id === SEED_USER_ID);
+      }
     } catch (e) {
       console.warn('Supabase error on getTransacoes:', e);
     }
   }
 
   const db = getLocalDB();
-  return (db.transacoes.filter((t) => t.user_id === userId) || []).sort(
+  return (db.transacoes.filter((t) => t.user_id === userId || t.user_id === SEED_USER_ID) || []).sort(
     (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
   );
 }
@@ -760,17 +795,19 @@ export async function getDevedores(userId: string): Promise<Devedor[]> {
       const { data, error } = await supabase
         .from('devedores')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (!error && data) return data as Devedor[];
+      if (!error && data) {
+        const list = data as Devedor[];
+        return list.filter((d) => d.user_id === userId || d.user_id === SEED_USER_ID);
+      }
     } catch (e) {
       console.warn('Supabase error on getDevedores:', e);
     }
   }
 
   const db = getLocalDB();
-  return db.devedores.filter((d) => d.user_id === userId);
+  return db.devedores.filter((d) => d.user_id === userId || d.user_id === SEED_USER_ID);
 }
 
 export async function saveDevedor(devedor: Omit<Devedor, 'id' | 'created_at'> & { id?: string }): Promise<Devedor> {
@@ -930,17 +967,19 @@ export async function getContasAPagar(userId: string): Promise<ContaAPagar[]> {
       const { data, error } = await supabase
         .from('contas_a_pagar')
         .select('*')
-        .eq('user_id', userId)
         .order('vencimento', { ascending: true });
 
-      if (!error && data) return data as ContaAPagar[];
+      if (!error && data) {
+        const list = data as ContaAPagar[];
+        return list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+      }
     } catch (e) {
       console.warn('Supabase error on getContasAPagar:', e);
     }
   }
 
   const db = getLocalDB();
-  return db.contas_a_pagar.filter((c) => c.user_id === userId);
+  return db.contas_a_pagar.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
 }
 
 export async function saveContaAPagar(conta: Omit<ContaAPagar, 'id' | 'created_at'> & { id?: string }): Promise<ContaAPagar> {
