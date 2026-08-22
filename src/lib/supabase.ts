@@ -400,34 +400,53 @@ function saveLocalDB(db: typeof INITIAL_SEED_DATA) {
 }
 
 /**
- * Sincroniza dados locais para o Supabase se o Supabase ainda não tiver os registros
+ * Sincroniza TODOS os dados locais para o Supabase (Faz merge seguro via Upsert)
  */
 export async function syncLocalSeedToSupabaseIfEmpty(userId: string) {
   const supabase = getSupabaseClient();
   if (!supabase) return;
 
   try {
-    const { data: existingTrx } = await supabase.from('transacoes').select('id').limit(1);
-    if (!existingTrx || existingTrx.length === 0) {
-      const db = getLocalDB();
-      if (db.contas_bancarias.length > 0) {
-        await supabase.from('contas_bancarias').upsert(db.contas_bancarias);
-      }
-      if (db.cartoes_credito.length > 0) {
-        await supabase.from('cartoes_credito').upsert(db.cartoes_credito);
-      }
-      if (db.devedores.length > 0) {
-        await supabase.from('devedores').upsert(db.devedores);
-      }
-      if (db.contas_a_pagar.length > 0) {
-        await supabase.from('contas_a_pagar').upsert(db.contas_a_pagar);
-      }
-      if (db.transacoes.length > 0) {
-        await supabase.from('transacoes').upsert(db.transacoes);
-      }
+    const db = getLocalDB();
+
+    // 1. Garante que os registros locais sejam enviados para a nuvem
+    if (db.contas_bancarias.length > 0) {
+      await supabase.from('contas_bancarias').upsert(db.contas_bancarias, { onConflict: 'id' });
+    }
+    if (db.cartoes_credito.length > 0) {
+      await supabase.from('cartoes_credito').upsert(db.cartoes_credito, { onConflict: 'id' });
+    }
+    if (db.devedores.length > 0) {
+      await supabase.from('devedores').upsert(db.devedores, { onConflict: 'id' });
+    }
+    if (db.contas_a_pagar.length > 0) {
+      await supabase.from('contas_a_pagar').upsert(db.contas_a_pagar, { onConflict: 'id' });
+    }
+    if (db.transacoes.length > 0) {
+      await supabase.from('transacoes').upsert(db.transacoes, { onConflict: 'id' });
     }
   } catch (e) {
-    console.warn('Sync seed to Supabase warning:', e);
+    console.warn('Sync to Supabase warning:', e);
+  }
+}
+
+/**
+ * Verifica o status de saúde da conexão com o Supabase
+ */
+export async function checkSupabaseConnection(): Promise<{ connected: boolean; message: string; error?: string }> {
+  const supabase = getSupabaseClient();
+  if (!supabase) {
+    return { connected: false, message: 'Chaves do Supabase não configuradas.' };
+  }
+
+  try {
+    const { data, error } = await supabase.from('usuarios').select('id').limit(1);
+    if (error) {
+      return { connected: false, message: 'Erro de permissão ou tabela no Supabase.', error: error.message };
+    }
+    return { connected: true, message: 'Conectado em tempo real com a nuvem Supabase!' };
+  } catch (e: any) {
+    return { connected: false, message: 'Falha de conexão com o Supabase.', error: e?.message };
   }
 }
 
@@ -587,9 +606,13 @@ export async function getContasBancarias(userId: string): Promise<ContaBancaria[
         .order('created_at', { ascending: false });
 
       if (!error && data) {
-        // Filter by user or seed user
         const list = data as ContaBancaria[];
-        return list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+        const filtered = list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+        // Atualiza cache local
+        const db = getLocalDB();
+        db.contas_bancarias = filtered;
+        saveLocalDB(db);
+        return filtered;
       }
     } catch (e) {
       console.warn('Supabase error on getContasBancarias:', e);
@@ -660,7 +683,11 @@ export async function getCartoesCredito(userId: string): Promise<CartaoCredito[]
 
       if (!error && data) {
         const list = data as CartaoCredito[];
-        return list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+        const filtered = list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+        const db = getLocalDB();
+        db.cartoes_credito = filtered;
+        saveLocalDB(db);
+        return filtered;
       }
     } catch (e) {
       console.warn('Supabase error on getCartoesCredito:', e);
@@ -731,7 +758,11 @@ export async function getTransacoes(userId: string): Promise<Transacao[]> {
 
       if (!error && data) {
         const list = data as Transacao[];
-        return list.filter((t) => t.user_id === userId || t.user_id === SEED_USER_ID);
+        const filtered = list.filter((t) => t.user_id === userId || t.user_id === SEED_USER_ID);
+        const db = getLocalDB();
+        db.transacoes = filtered;
+        saveLocalDB(db);
+        return filtered;
       }
     } catch (e) {
       console.warn('Supabase error on getTransacoes:', e);
@@ -754,7 +785,7 @@ export async function createTransacao(transacao: Omit<Transacao, 'id' | 'created
     try {
       const { data, error } = await supabase
         .from('transacoes')
-        .insert([finalTrx])
+        .upsert([finalTrx])
         .select()
         .single();
 
@@ -799,7 +830,11 @@ export async function getDevedores(userId: string): Promise<Devedor[]> {
 
       if (!error && data) {
         const list = data as Devedor[];
-        return list.filter((d) => d.user_id === userId || d.user_id === SEED_USER_ID);
+        const filtered = list.filter((d) => d.user_id === userId || d.user_id === SEED_USER_ID);
+        const db = getLocalDB();
+        db.devedores = filtered;
+        saveLocalDB(db);
+        return filtered;
       }
     } catch (e) {
       console.warn('Supabase error on getDevedores:', e);
@@ -971,7 +1006,11 @@ export async function getContasAPagar(userId: string): Promise<ContaAPagar[]> {
 
       if (!error && data) {
         const list = data as ContaAPagar[];
-        return list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+        const filtered = list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+        const db = getLocalDB();
+        db.contas_a_pagar = filtered;
+        saveLocalDB(db);
+        return filtered;
       }
     } catch (e) {
       console.warn('Supabase error on getContasAPagar:', e);

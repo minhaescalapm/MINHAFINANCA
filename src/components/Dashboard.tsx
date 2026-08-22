@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useFinance } from '../context/FinanceContext';
 import { TabType, TipoTransacao } from '../types';
+import { checkSupabaseConnection, SUPABASE_SQL_SCHEMA, syncLocalSeedToSupabaseIfEmpty } from '../lib/supabase';
 import {
   Wallet,
   TrendingUp,
@@ -21,6 +22,13 @@ import {
   Calendar,
   LogOut,
   BellRing,
+  Cloud,
+  CloudCheck,
+  CloudOff,
+  Copy,
+  Check,
+  ExternalLink,
+  ShieldCheck,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -55,6 +63,38 @@ export function Dashboard({
   } = useFinance();
 
   const [filterType, setFilterType] = useState<'todos' | 'entrada' | 'saida'>('todos');
+  const [isCloudModalOpen, setIsCloudModalOpen] = useState(false);
+  const [cloudStatus, setCloudStatus] = useState<{ connected: boolean; message: string; error?: string } | null>(null);
+  const [isCheckingCloud, setIsCheckingCloud] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
+  const [isForcingSync, setIsForcingSync] = useState(false);
+
+  useEffect(() => {
+    checkConnection();
+  }, []);
+
+  const checkConnection = async () => {
+    setIsCheckingCloud(true);
+    const status = await checkSupabaseConnection();
+    setCloudStatus(status);
+    setIsCheckingCloud(false);
+  };
+
+  const handleForceSync = async () => {
+    setIsForcingSync(true);
+    if (user) {
+      await syncLocalSeedToSupabaseIfEmpty(user.id);
+    }
+    await refreshAllData();
+    await checkConnection();
+    setIsForcingSync(false);
+  };
+
+  const copySqlToClipboard = () => {
+    navigator.clipboard.writeText(SUPABASE_SQL_SCHEMA);
+    setCopiedSql(true);
+    setTimeout(() => setCopiedSql(false), 2500);
+  };
 
   const formatMoney = (val: number) => {
     if (isPrivacyMode) return '••••••';
@@ -144,6 +184,24 @@ export function Dashboard({
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Cloud Status Button */}
+          <button
+            id="btn-cloud-status"
+            onClick={() => {
+              checkConnection();
+              setIsCloudModalOpen(true);
+            }}
+            title="Status da Sincronização em Tempo Real (Supabase)"
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+              cloudStatus?.connected
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
+                : 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20'
+            }`}
+          >
+            <Cloud className={`w-3.5 h-3.5 ${cloudStatus?.connected ? 'text-emerald-400' : 'text-amber-400 animate-pulse'}`} />
+            <span className="hidden sm:inline">{cloudStatus?.connected ? 'Nuvem Ativa' : 'Sincronizar'}</span>
+          </button>
+
           {/* Privacy Toggle */}
           <button
             id="btn-toggle-privacy"
@@ -157,12 +215,12 @@ export function Dashboard({
           {/* Sync Button */}
           <button
             id="btn-refresh-data"
-            onClick={() => refreshAllData()}
-            disabled={isLoadingData}
-            title="Sincronizar dados"
+            onClick={() => handleForceSync()}
+            disabled={isLoadingData || isForcingSync}
+            title="Sincronizar e Enviar para a Nuvem"
             className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoadingData ? 'animate-spin text-emerald-400' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isLoadingData || isForcingSync ? 'animate-spin text-emerald-400' : ''}`} />
           </button>
 
           {/* Logout Button */}
@@ -495,6 +553,117 @@ export function Dashboard({
           </div>
         )}
       </div>
+
+      {/* Cloud Sync Diagnostic Modal */}
+      {isCloudModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-zinc-800 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className={`p-2 rounded-xl ${cloudStatus?.connected ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                  <Cloud className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-zinc-100">Sincronização em Tempo Real</h3>
+                  <p className="text-xs text-zinc-400">Supabase Cloud Database</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsCloudModalOpen(false)}
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+              {/* Status Box */}
+              <div className={`p-4 rounded-xl border ${
+                cloudStatus?.connected
+                  ? 'bg-emerald-500/10 border-emerald-500/30'
+                  : 'bg-amber-500/10 border-amber-500/30'
+              }`}>
+                <div className="flex items-start gap-3">
+                  {cloudStatus?.connected ? (
+                    <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                  ) : (
+                    <CloudOff className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                  )}
+                  <div>
+                    <h4 className={`text-sm font-bold ${cloudStatus?.connected ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {cloudStatus?.connected ? 'Nuvem Conectada e Operando' : 'Aguardando Sincronização da Nuvem'}
+                    </h4>
+                    <p className="text-xs text-zinc-300 mt-1">
+                      {cloudStatus?.message || (isCheckingCloud ? 'Testando conexão...' : 'Verificando status...')}
+                    </p>
+                    {cloudStatus?.error && (
+                      <div className="mt-2 p-2 rounded bg-black/40 border border-amber-500/20 text-[11px] font-mono text-amber-300">
+                        {cloudStatus.error}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Force Sync Action */}
+              <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-zinc-200 uppercase tracking-wide">Forçar Sincronização</h4>
+                    <p className="text-[11px] text-zinc-400">Envia todos os dados deste aparelho para a nuvem e baixa as novidades.</p>
+                  </div>
+                  <button
+                    onClick={handleForceSync}
+                    disabled={isForcingSync}
+                    className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-zinc-950 text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isForcingSync ? 'animate-spin' : ''}`} />
+                    {isForcingSync ? 'Enviando...' : 'Sincronizar Agora'}
+                  </button>
+                </div>
+              </div>
+
+              {/* SQL Script Accordion / Copy */}
+              <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-zinc-200">Script SQL para o Supabase</h4>
+                    <p className="text-[11px] text-zinc-400">Caso precise liberar ou recriar as tabelas no Supabase SQL Editor.</p>
+                  </div>
+                  <button
+                    onClick={copySqlToClipboard}
+                    className="px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold flex items-center gap-1.5 transition-all"
+                  >
+                    {copiedSql ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400">Copiado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 text-zinc-400" />
+                        <span>Copiar SQL</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-zinc-800 flex justify-end">
+              <button
+                onClick={() => setIsCloudModalOpen(false)}
+                className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-all"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
