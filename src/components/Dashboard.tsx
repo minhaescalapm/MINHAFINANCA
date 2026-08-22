@@ -22,6 +22,7 @@ import {
   Calendar,
   LogOut,
   BellRing,
+  Trash2,
   Cloud,
   CloudCheck,
   CloudOff,
@@ -538,14 +539,29 @@ export function Dashboard({
                     </div>
                   </div>
 
-                  <div className="text-right shrink-0">
-                    <p
-                      className={`text-xs sm:text-sm font-bold font-mono-num ${
-                        isEntrada ? 'text-emerald-400' : 'text-rose-400'
-                      }`}
+                  <div className="flex items-center gap-2.5 shrink-0">
+                    <div className="text-right">
+                      <p
+                        className={`text-xs sm:text-sm font-bold font-mono-num ${
+                          isEntrada ? 'text-emerald-400' : 'text-rose-400'
+                        }`}
+                      >
+                        {isEntrada ? '+' : '-'} {formatMoney(t.valor)}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Deseja excluir a transação "${t.descricao}" de ${formatMoney(t.valor)}?`)) {
+                          deleteTransacaoItem(t.id);
+                        }
+                      }}
+                      className="p-1.5 rounded-lg bg-zinc-800/80 hover:bg-rose-500/20 text-zinc-500 hover:text-rose-400 border border-zinc-700/50 transition-all cursor-pointer"
+                      title="Excluir Transação"
                     >
-                      {isEntrada ? '+' : '-'} {formatMoney(t.valor)}
-                    </p>
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               );

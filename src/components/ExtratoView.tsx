@@ -360,11 +360,11 @@ export function ExtratoView({ onOpenNewTransaction }: ExtratoViewProps) {
 
                   <button
                     onClick={() => {
-                      if (confirm(`Deseja excluir a transação "${t.descricao}"?`)) {
+                      if (confirm(`Deseja excluir a transação "${t.descricao}" de ${formatMoney(t.valor)}?`)) {
                         deleteTransacaoItem(t.id);
                       }
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-600 hover:text-rose-400 hover:bg-zinc-800 transition-all"
+                    className="p-1.5 rounded-lg bg-zinc-800/80 hover:bg-rose-500/20 text-zinc-400 hover:text-rose-400 border border-zinc-700/50 transition-all cursor-pointer"
                     title="Excluir Transação"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
