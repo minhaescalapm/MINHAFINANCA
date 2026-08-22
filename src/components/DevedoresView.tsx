@@ -66,9 +66,9 @@ export function DevedoresView() {
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [itemServico, setItemServico] = useState('');
-  const [valorParcelaStr, setValorParcelaStr] = useState('140,00');
-  const [qtdParcelas, setQtdParcelas] = useState(300);
-  const [valorTotalStr, setValorTotalStr] = useState('42.000,00');
+  const [valorParcelaStr, setValorParcelaStr] = useState('');
+  const [qtdParcelas, setQtdParcelas] = useState(1);
+  const [valorTotalStr, setValorTotalStr] = useState('');
   const [dataInicio, setDataInicio] = useState(new Date().toISOString().split('T')[0]);
   const [contaDestinoId, setContaDestinoId] = useState(contas[0]?.id || '');
 

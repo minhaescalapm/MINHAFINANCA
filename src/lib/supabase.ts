@@ -152,7 +152,13 @@ function getLocalDB(): typeof INITIAL_SEED_DATA {
       }
       if (Array.isArray(parsed.transacoes)) {
         const cleaned = parsed.transacoes.filter(
-          (t: Transacao) => !t.id.startsWith('trx_01') && !t.id.startsWith('trx_02') && !t.id.startsWith('trx_03') && !t.id.startsWith('trx_04') && !t.id.startsWith('trx_05') && !t.id.startsWith('trx_06')
+          (t: Transacao) =>
+            !t.id.startsWith('trx_01') &&
+            !t.id.startsWith('trx_02') &&
+            !t.id.startsWith('trx_03') &&
+            !t.id.startsWith('trx_04') &&
+            !t.id.startsWith('trx_05') &&
+            !t.id.startsWith('trx_06')
         );
         if (cleaned.length !== parsed.transacoes.length) {
           parsed.transacoes = cleaned;
@@ -184,38 +190,11 @@ function saveLocalDB(db: typeof INITIAL_SEED_DATA) {
 }
 
 /**
- * Sincroniza dados locais para o Supabase
+ * Desativado para impedir qualquer lançamento automático de dados ou seeds.
  */
-export async function syncLocalSeedToSupabaseIfEmpty(userId: string) {
-  const supabase = getSupabaseClient();
-  if (!supabase) return;
-
-  try {
-    const db = getLocalDB();
-    const userContas = db.contas_bancarias.filter((c) => c.user_id === userId);
-    const userCartoes = db.cartoes_credito.filter((c) => c.user_id === userId);
-    const userDevedores = db.devedores.filter((d) => d.user_id === userId);
-    const userContasAPagar = db.contas_a_pagar.filter((c) => c.user_id === userId);
-    const userTransacoes = db.transacoes.filter((t) => t.user_id === userId);
-
-    if (userContas.length > 0) {
-      await supabase.from('contas_bancarias').upsert(userContas, { onConflict: 'id' });
-    }
-    if (userCartoes.length > 0) {
-      await supabase.from('cartoes_credito').upsert(userCartoes, { onConflict: 'id' });
-    }
-    if (userDevedores.length > 0) {
-      await supabase.from('devedores').upsert(userDevedores, { onConflict: 'id' });
-    }
-    if (userContasAPagar.length > 0) {
-      await supabase.from('contas_a_pagar').upsert(userContasAPagar, { onConflict: 'id' });
-    }
-    if (userTransacoes.length > 0) {
-      await supabase.from('transacoes').upsert(userTransacoes, { onConflict: 'id' });
-    }
-  } catch (e) {
-    console.warn('Sync to Supabase warning:', e);
-  }
+export async function syncLocalSeedToSupabaseIfEmpty(_userId: string) {
+  // Intencionalmente vazio - não lançar nada automático
+  return;
 }
 
 /**
@@ -947,6 +926,21 @@ export async function zerarTodosDados(userId: string): Promise<void> {
       ]);
     } catch (e) {
       console.warn('Supabase zerarTodosDados warning:', e);
+    }
+  }
+}
+
+export async function zerarTransacoesApenas(userId: string): Promise<void> {
+  const db = getLocalDB();
+  db.transacoes = db.transacoes.filter((t) => t.user_id !== userId);
+  saveLocalDB(db);
+
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      await supabase.from('transacoes').delete().eq('user_id', userId);
+    } catch (e) {
+      console.warn('Supabase zerarTransacoesApenas warning:', e);
     }
   }
 }

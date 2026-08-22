@@ -28,8 +28,8 @@ import {
   deleteContaAPagar,
   pagarParcelaContaAPagar,
   getSupabaseClient,
-  syncLocalSeedToSupabaseIfEmpty,
   zerarTodosDados,
+  zerarTransacoesApenas,
 } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
@@ -73,6 +73,7 @@ interface FinanceContextType {
   pagarParcelaConta: (contaPagarId: string, valorParcela: number, contaOrigemId: string, obs?: string) => Promise<void>;
 
   zerarTodosOsDados: () => Promise<void>;
+  zerarApenasTransacoes: () => Promise<void>;
   refreshAllData: () => Promise<void>;
 }
 
@@ -112,9 +113,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
 
     setIsLoadingData(true);
     try {
-      // If Supabase is empty, sync seed/local data to Supabase first
-      await syncLocalSeedToSupabaseIfEmpty(user.id);
-
       const [contasData, cartoesData, trxData, devData, capData] = await Promise.all([
         getContasBancarias(user.id),
         getCartoesCredito(user.id),
@@ -620,6 +618,17 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const zerarApenasTransacoes = async () => {
+    if (!user) return;
+    try {
+      await zerarTransacoesApenas(user.id);
+      setTransacoes([]);
+      showSuccess('Extrato Zerado!', 'Todas as transações e histórico foram removidos.');
+    } catch (e: any) {
+      showError('Erro ao Zerar Extrato', e?.message);
+    }
+  };
+
   return (
     <FinanceContext.Provider
       value={{
@@ -652,6 +661,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         deleteContaPagarItem,
         pagarParcelaConta,
         zerarTodosOsDados,
+        zerarApenasTransacoes,
         refreshAllData: loadData,
       }}
     >

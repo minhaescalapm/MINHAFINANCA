@@ -62,6 +62,7 @@ export function Dashboard({
     togglePrivacyMode,
     deleteTransacaoItem,
     zerarTodosOsDados,
+    zerarApenasTransacoes,
   } = useFinance();
 
   const [filterType, setFilterType] = useState<'todos' | 'entrada' | 'saida'>('todos');
@@ -478,7 +479,22 @@ export function Dashboard({
             </h2>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
+            {transacoes.length > 0 && (
+              <button
+                onClick={async () => {
+                  if (window.confirm('Deseja limpar todos os lançamentos de transações?')) {
+                    await zerarApenasTransacoes();
+                  }
+                }}
+                className="text-[11px] font-semibold text-rose-400 hover:text-rose-300 transition-colors flex items-center gap-1 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20"
+                title="Apagar todos os lançamentos"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Limpar</span>
+              </button>
+            )}
+
             <button
               onClick={() => setActiveTab('extrato')}
               className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-0.5"

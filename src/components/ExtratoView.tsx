@@ -27,6 +27,7 @@ export function ExtratoView({ onOpenNewTransaction }: ExtratoViewProps) {
     contas,
     cartoes,
     deleteTransacaoItem,
+    zerarApenasTransacoes,
     isPrivacyMode,
   } = useFinance();
 
@@ -34,6 +35,7 @@ export function ExtratoView({ onOpenNewTransaction }: ExtratoViewProps) {
   const [tipoFilter, setTipoFilter] = useState<'todos' | 'entrada' | 'saida'>('todos');
   const [contaFilter, setContaFilter] = useState<string>('todos');
   const [selectedMonth, setSelectedMonth] = useState<string>('todos');
+  const [isClearing, setIsClearing] = useState(false);
 
   const formatMoney = (val: number) => {
     if (isPrivacyMode) return '••••••';
@@ -133,7 +135,25 @@ export function ExtratoView({ onOpenNewTransaction }: ExtratoViewProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {transacoes.length > 0 && (
+            <button
+              onClick={async () => {
+                if (window.confirm('Tem certeza que deseja apagar todos os lançamentos e transações do extrato?')) {
+                  setIsClearing(true);
+                  await zerarApenasTransacoes();
+                  setIsClearing(false);
+                }
+              }}
+              disabled={isClearing}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-xs font-semibold text-rose-300 hover:text-rose-200 transition-colors disabled:opacity-50"
+              title="Apagar todos os lançamentos do extrato"
+            >
+              <Trash2 className="w-4 h-4 text-rose-400" />
+              <span>{isClearing ? 'Limpando...' : 'Limpar Extrato'}</span>
+            </button>
+          )}
+
           <button
             onClick={exportCSV}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-xs font-semibold text-zinc-300 hover:text-zinc-100 transition-colors"

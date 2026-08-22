@@ -68,15 +68,15 @@ export function ContasCartoesView({ onOpenNewTransaction }: ContasCartoesViewPro
   const [editingCartaoId, setEditingCartaoId] = useState<string | null>(null);
   const [cartaoNome, setCartaoNome] = useState('');
   const [cartaoBandeira, setCartaoBandeira] = useState<'visa' | 'mastercard' | 'elo' | 'amex' | 'outros'>('mastercard');
-  const [cartaoLimite, setCartaoLimite] = useState('20.000,00');
+  const [cartaoLimite, setCartaoLimite] = useState('');
   const [cartaoFaturaAtual, setCartaoFaturaAtual] = useState('0,00');
   const [cartaoTotalGasto, setCartaoTotalGasto] = useState('0,00');
   const [cartaoVencimento, setCartaoVencimento] = useState(10);
   const [cartaoMelhorDia, setCartaoMelhorDia] = useState(3);
   const [cartaoContaDebito, setCartaoContaDebito] = useState('');
-  const [cartaoNumero, setCartaoNumero] = useState('4532 7810 9921 5193');
-  const [cartaoExpiracao, setCartaoExpiracao] = useState('12/29');
-  const [cartaoCodigoCompra, setCartaoCodigoCompra] = useState('508');
+  const [cartaoNumero, setCartaoNumero] = useState('');
+  const [cartaoExpiracao, setCartaoExpiracao] = useState('');
+  const [cartaoCodigoCompra, setCartaoCodigoCompra] = useState('');
 
   // Quick edit fatura modal
   const [isQuickFaturaOpen, setIsQuickFaturaOpen] = useState(false);
@@ -315,15 +315,15 @@ export function ContasCartoesView({ onOpenNewTransaction }: ContasCartoesViewPro
     setEditingCartaoId(null);
     setCartaoNome('');
     setCartaoBandeira('mastercard');
-    setCartaoLimite('20.000,00');
+    setCartaoLimite('');
     setCartaoFaturaAtual('0,00');
     setCartaoTotalGasto('0,00');
     setCartaoVencimento(10);
     setCartaoMelhorDia(3);
     setCartaoContaDebito(contas[0]?.id || '');
-    setCartaoNumero('4532 7810 9921 5193');
-    setCartaoExpiracao('12/29');
-    setCartaoCodigoCompra('508');
+    setCartaoNumero('');
+    setCartaoExpiracao('');
+    setCartaoCodigoCompra('');
     setIsCartaoModalOpen(true);
   };
 
