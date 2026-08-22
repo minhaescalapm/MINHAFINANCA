@@ -16,6 +16,10 @@ const STORAGE_KEYS = {
   CURRENT_USER: 'gpwa_current_user',
 };
 
+// Default Project Supabase Credentials provided by master user
+const DEFAULT_SUPABASE_URL = 'https://ulqfqnnbcfrqfncpxufp.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVscWZxbm5iY2ZycWZuY3B4dWZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczNDg1OTcsImV4cCI6MjEwMjkyNDU5N30.Bhwt0f6umaG1iHZbw3XWcYv2o37_eB6P06WLC11NaII';
+
 // Retrieve configured Supabase credentials or environment variables
 export function getSupabaseCredentials(): { url: string; anonKey: string; isCustom: boolean } {
   const customUrl = localStorage.getItem(STORAGE_KEYS.SUPABASE_URL);
@@ -24,16 +28,16 @@ export function getSupabaseCredentials(): { url: string; anonKey: string; isCust
   const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
   const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
-  let cleanedUrl = (customUrl || envUrl || '').trim();
+  let cleanedUrl = (customUrl || envUrl || DEFAULT_SUPABASE_URL).trim();
   if (cleanedUrl) {
     cleanedUrl = cleanedUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
   }
-  const anonKey = (customKey || envKey || '').trim();
+  const anonKey = (customKey || envKey || DEFAULT_SUPABASE_ANON_KEY).trim();
 
   return {
     url: cleanedUrl,
     anonKey: anonKey,
-    isCustom: Boolean(customUrl || customKey),
+    isCustom: Boolean(customUrl || customKey || DEFAULT_SUPABASE_URL),
   };
 }
 
