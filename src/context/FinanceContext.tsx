@@ -29,6 +29,7 @@ import {
   pagarParcelaContaAPagar,
   getSupabaseClient,
   syncLocalSeedToSupabaseIfEmpty,
+  zerarTodosDados,
 } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
@@ -71,6 +72,7 @@ interface FinanceContextType {
   deleteContaPagarItem: (capId: string) => Promise<void>;
   pagarParcelaConta: (contaPagarId: string, valorParcela: number, contaOrigemId: string, obs?: string) => Promise<void>;
 
+  zerarTodosOsDados: () => Promise<void>;
   refreshAllData: () => Promise<void>;
 }
 
@@ -603,6 +605,21 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const zerarTodosOsDados = async () => {
+    if (!user) return;
+    try {
+      await zerarTodosDados(user.id);
+      setContas([]);
+      setCartoes([]);
+      setTransacoes([]);
+      setDevedores([]);
+      setContasAPagar([]);
+      showSuccess('Tudo Zerado!', 'Todos os lançamentos, contas, cartões e registros foram apagados com sucesso.');
+    } catch (e: any) {
+      showError('Erro ao Zerar Dados', e?.message);
+    }
+  };
+
   return (
     <FinanceContext.Provider
       value={{
@@ -634,6 +651,7 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
         addContaPagar,
         deleteContaPagarItem,
         pagarParcelaConta,
+        zerarTodosOsDados,
         refreshAllData: loadData,
       }}
     >

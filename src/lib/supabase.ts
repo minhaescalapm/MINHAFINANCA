@@ -76,7 +76,7 @@ export function getSupabaseClient(): SupabaseClient | null {
 }
 
 // ----------------------------------------------------
-// DEFAULT SEED DATA (For Immediate Out-Of-The-Box Demo)
+// DEFAULT SEED DATA (Clean Empty State)
 // ----------------------------------------------------
 const SEED_USER_ID = 'usr_master_21975151937';
 
@@ -92,271 +92,11 @@ export const INITIAL_SEED_DATA = {
     },
   ] as Usuario[],
 
-  contas_bancarias: [
-    {
-      id: 'cta_nu_01',
-      user_id: SEED_USER_ID,
-      nome: 'Nubank PJ Principal',
-      instituicao: 'Nubank',
-      tipo: 'pj' as const,
-      saldo_inicial: 48500.0,
-      cor: '#820ad1',
-      created_at: '2026-01-10T10:00:00Z',
-    },
-    {
-      id: 'cta_itau_02',
-      user_id: SEED_USER_ID,
-      nome: 'Itaú Personalité (PF)',
-      instituicao: 'Itaú',
-      tipo: 'corrente' as const,
-      saldo_inicial: 22800.0,
-      cor: '#ec7000',
-      created_at: '2026-01-10T10:00:00Z',
-    },
-    {
-      id: 'cta_inter_03',
-      user_id: SEED_USER_ID,
-      nome: 'Inter Investimentos (Reserva)',
-      instituicao: 'Banco Inter',
-      tipo: 'investimento' as const,
-      saldo_inicial: 115000.0,
-      cor: '#ff7a00',
-      created_at: '2026-01-10T10:00:00Z',
-    },
-    {
-      id: 'cta_caixa_04',
-      user_id: SEED_USER_ID,
-      nome: 'Caixa Físico / Cofre Operacional',
-      instituicao: 'Espécie',
-      tipo: 'caixa' as const,
-      saldo_inicial: 6400.0,
-      cor: '#10b981',
-      created_at: '2026-01-10T10:00:00Z',
-    },
-  ] as ContaBancaria[],
-
-  cartoes_credito: [
-    {
-      id: 'crt_black_01',
-      user_id: SEED_USER_ID,
-      nome: 'Nubank Ultravioleta Black',
-      bandeira: 'mastercard' as const,
-      limite_total: 50000.0,
-      dia_vencimento: 10,
-      melhor_dia_compra: 3,
-      cor: '#820ad1',
-      conta_debito_id: 'cta_nu_01',
-      numero_cartao: '5428 9012 3456 1937',
-      data_expiracao: '08/31',
-      codigo_compra: '805',
-      created_at: '2026-01-10T10:00:00Z',
-    },
-    {
-      id: 'crt_itau_02',
-      user_id: SEED_USER_ID,
-      nome: 'ITAU',
-      bandeira: 'mastercard' as const,
-      limite_total: 20000.0,
-      dia_vencimento: 10,
-      melhor_dia_compra: 3,
-      cor: '#18181b',
-      conta_debito_id: 'cta_itau_02',
-      numero_cartao: '4532 7810 9921 5193',
-      data_expiracao: '12/29',
-      codigo_compra: '508',
-      created_at: '2026-01-10T10:00:00Z',
-    },
-  ] as CartaoCredito[],
-
-  devedores: [
-    {
-      id: 'dev_zafira_00',
-      user_id: SEED_USER_ID,
-      nome: 'MAICON',
-      telefone: '(11) 98888-7777',
-      item_servico: 'ZAFIRA PRATA',
-      valor_total: 42000.0,
-      valor_parcela: 140.0,
-      qtd_parcelas: 300,
-      parcelas_pagas: 5,
-      valor_pago: 700.0,
-      data_inicio: '2026-08-21',
-      conta_destino_id: 'cta_nu_01',
-      status: 'parcial' as const,
-      created_at: '2026-08-21T10:00:00Z',
-    },
-    {
-      id: 'dev_civic_01',
-      user_id: SEED_USER_ID,
-      nome: 'Carlos Eduardo Fontes',
-      telefone: '(11) 98765-4321',
-      item_servico: 'Venda do Civic Touring G10',
-      valor_total: 110000.0,
-      valor_parcela: 11000.0,
-      qtd_parcelas: 10,
-      parcelas_pagas: 3,
-      valor_pago: 33000.0,
-      data_inicio: '2026-05-10',
-      conta_destino_id: 'cta_nu_01',
-      status: 'parcial' as const,
-      created_at: '2026-05-10T10:00:00Z',
-    },
-    {
-      id: 'dev_consultoria_02',
-      user_id: SEED_USER_ID,
-      nome: 'Nexus Logística & Transportes',
-      telefone: '(19) 99123-9988',
-      item_servico: 'Contrato de Consultoria Empresarial Q3',
-      valor_total: 36000.0,
-      qtd_parcelas: 4,
-      parcelas_pagas: 2,
-      valor_pago: 18000.0,
-      data_inicio: '2026-07-01',
-      conta_destino_id: 'cta_nu_01',
-      status: 'parcial' as const,
-      created_at: '2026-07-01T10:00:00Z',
-    },
-    {
-      id: 'dev_reforma_03',
-      user_id: SEED_USER_ID,
-      nome: 'Marcos Vinícius Prado',
-      telefone: '(11) 97711-2233',
-      item_servico: 'Empréstimo Ponte / Reforma Apartamento',
-      valor_total: 15000.0,
-      qtd_parcelas: 3,
-      parcelas_pagas: 0,
-      valor_pago: 0.0,
-      data_inicio: '2026-08-05',
-      conta_destino_id: 'cta_itau_02',
-      status: 'pendente' as const,
-      created_at: '2026-08-05T10:00:00Z',
-    },
-  ] as Devedor[],
-
-  contas_a_pagar: [
-    {
-      id: 'cap_hilux_01',
-      user_id: SEED_USER_ID,
-      descricao: 'Financiamento Hilux SRX 4x4',
-      fornecedor_credor: 'Banco Toyota Finance',
-      valor_total: 180000.0,
-      qtd_prestacoes: 36,
-      prestacoes_pagas: 14,
-      valor_pago: 70000.0,
-      vencimento: '2026-08-28',
-      categoria: 'Veículos & Frota',
-      conta_padrao_id: 'cta_nu_01',
-      status: 'parcial' as const,
-      created_at: '2026-01-15T10:00:00Z',
-    },
-    {
-      id: 'cap_galpao_02',
-      user_id: SEED_USER_ID,
-      descricao: 'Aluguel do Galpão Logístico Matriz',
-      fornecedor_credor: 'Imobiliária Alpha Prime',
-      valor_total: 14400.0,
-      qtd_prestacoes: 12,
-      prestacoes_pagas: 7,
-      valor_pago: 8400.0,
-      vencimento: '2026-08-20',
-      categoria: 'Imóveis & Infra',
-      conta_padrao_id: 'cta_nu_01',
-      status: 'vencendo' as const,
-      created_at: '2026-01-05T10:00:00Z',
-    },
-    {
-      id: 'cap_servidores_03',
-      user_id: SEED_USER_ID,
-      descricao: 'Infraestrutura Cloud & IA Dedicada',
-      fornecedor_credor: 'Google Cloud & AWS',
-      valor_total: 3850.0,
-      qtd_prestacoes: 1,
-      prestacoes_pagas: 0,
-      valor_pago: 0.0,
-      vencimento: '2026-08-25',
-      categoria: 'Tecnologia & Servidores',
-      conta_padrao_id: 'cta_nu_01',
-      status: 'pendente' as const,
-      created_at: '2026-08-01T10:00:00Z',
-    },
-  ] as ContaAPagar[],
-
-  transacoes: [
-    {
-      id: 'trx_01',
-      user_id: SEED_USER_ID,
-      descricao: 'Parcela 03/10 - Venda do Civic Touring',
-      valor: 11000.0,
-      tipo: 'entrada' as const,
-      categoria: 'Venda de Carros',
-      conta_id: 'cta_nu_01',
-      data: '2026-08-10',
-      observacao: 'Recebido via Pix - Pagamento pontual do Carlos',
-      devedor_id: 'dev_civic_01',
-      created_at: '2026-08-10T14:30:00Z',
-    },
-    {
-      id: 'trx_02',
-      user_id: SEED_USER_ID,
-      descricao: 'Pro-Labore / Retirada Executiva Mensal',
-      valor: 25000.0,
-      tipo: 'entrada' as const,
-      categoria: 'Salário & Retirada',
-      conta_id: 'cta_itau_02',
-      data: '2026-08-05',
-      observacao: 'Transferência automática da holding',
-      created_at: '2026-08-05T09:00:00Z',
-    },
-    {
-      id: 'trx_03',
-      user_id: SEED_USER_ID,
-      descricao: 'Prestação 14/36 - Financiamento Hilux SRX',
-      valor: 5000.0,
-      tipo: 'saida' as const,
-      categoria: 'Veículos & Frota',
-      conta_id: 'cta_nu_01',
-      data: '2026-08-02',
-      observacao: 'Débito automático Banco Toyota',
-      conta_a_pagar_id: 'cap_hilux_01',
-      created_at: '2026-08-02T11:00:00Z',
-    },
-    {
-      id: 'trx_04',
-      user_id: SEED_USER_ID,
-      descricao: 'Abastecimento Frota & Gasolina Podium',
-      valor: 850.0,
-      tipo: 'saida' as const,
-      categoria: 'Transporte & Combustível',
-      cartao_id: 'crt_black_01',
-      data: '2026-08-14',
-      observacao: 'Posto Ipiranga Rodoanel',
-      created_at: '2026-08-14T16:20:00Z',
-    },
-    {
-      id: 'trx_05',
-      user_id: SEED_USER_ID,
-      descricao: 'Almoço de Negócios Diretoria',
-      valor: 640.0,
-      tipo: 'saida' as const,
-      categoria: 'Alimentação & Negócios',
-      cartao_id: 'crt_black_01',
-      data: '2026-08-15',
-      observacao: 'Restaurante Figueira Rubaiyat',
-      created_at: '2026-08-15T13:40:00Z',
-    },
-    {
-      id: 'trx_06',
-      user_id: SEED_USER_ID,
-      descricao: 'Licenças Software Adobe & Figma Enterprise',
-      valor: 1420.0,
-      tipo: 'saida' as const,
-      categoria: 'Tecnologia & Softwares',
-      cartao_id: 'crt_itau_02',
-      data: '2026-08-12',
-      observacao: 'Cobrança mensal em USD convertida',
-      created_at: '2026-08-12T10:15:00Z',
-    },
-  ] as Transacao[],
+  contas_bancarias: [] as ContaBancaria[],
+  cartoes_credito: [] as CartaoCredito[],
+  devedores: [] as Devedor[],
+  contas_a_pagar: [] as ContaAPagar[],
+  transacoes: [] as Transacao[],
 };
 
 // ----------------------------------------------------
@@ -370,13 +110,65 @@ function getLocalDB(): typeof INITIAL_SEED_DATA {
   }
   try {
     const parsed = JSON.parse(data);
-    // Ensure the master user is always present in usuarios list
-    if (parsed && Array.isArray(parsed.usuarios)) {
-      const hasMaster = parsed.usuarios.some(
-        (u: Usuario) => u.telefone.replace(/\D/g, '') === '21975151937'
-      );
-      if (!hasMaster) {
-        parsed.usuarios.unshift(INITIAL_SEED_DATA.usuarios[0]);
+    let changed = false;
+
+    // Purge any old mock/seed data that might be stuck in user's browser localStorage
+    if (parsed) {
+      if (Array.isArray(parsed.contas_bancarias)) {
+        const cleaned = parsed.contas_bancarias.filter(
+          (c: ContaBancaria) => !c.id.startsWith('cta_nu_01') && !c.id.startsWith('cta_itau_02') && !c.id.startsWith('cta_inter_03') && !c.id.startsWith('cta_caixa_04')
+        );
+        if (cleaned.length !== parsed.contas_bancarias.length) {
+          parsed.contas_bancarias = cleaned;
+          changed = true;
+        }
+      }
+      if (Array.isArray(parsed.cartoes_credito)) {
+        const cleaned = parsed.cartoes_credito.filter(
+          (c: CartaoCredito) => !c.id.startsWith('crt_black_01') && !c.id.startsWith('crt_itau_02')
+        );
+        if (cleaned.length !== parsed.cartoes_credito.length) {
+          parsed.cartoes_credito = cleaned;
+          changed = true;
+        }
+      }
+      if (Array.isArray(parsed.devedores)) {
+        const cleaned = parsed.devedores.filter(
+          (d: Devedor) => !d.id.startsWith('dev_zafira_00') && !d.id.startsWith('dev_civic_01') && !d.id.startsWith('dev_consultoria_02') && !d.id.startsWith('dev_reforma_03')
+        );
+        if (cleaned.length !== parsed.devedores.length) {
+          parsed.devedores = cleaned;
+          changed = true;
+        }
+      }
+      if (Array.isArray(parsed.contas_a_pagar)) {
+        const cleaned = parsed.contas_a_pagar.filter(
+          (c: ContaAPagar) => !c.id.startsWith('cap_hilux_01') && !c.id.startsWith('cap_galpao_02') && !c.id.startsWith('cap_servidores_03')
+        );
+        if (cleaned.length !== parsed.contas_a_pagar.length) {
+          parsed.contas_a_pagar = cleaned;
+          changed = true;
+        }
+      }
+      if (Array.isArray(parsed.transacoes)) {
+        const cleaned = parsed.transacoes.filter(
+          (t: Transacao) => !t.id.startsWith('trx_01') && !t.id.startsWith('trx_02') && !t.id.startsWith('trx_03') && !t.id.startsWith('trx_04') && !t.id.startsWith('trx_05') && !t.id.startsWith('trx_06')
+        );
+        if (cleaned.length !== parsed.transacoes.length) {
+          parsed.transacoes = cleaned;
+          changed = true;
+        }
+      }
+      if (Array.isArray(parsed.usuarios)) {
+        const hasMaster = parsed.usuarios.some(
+          (u: Usuario) => u.telefone.replace(/\D/g, '') === '21975151937'
+        );
+        if (!hasMaster) {
+          parsed.usuarios.unshift(INITIAL_SEED_DATA.usuarios[0]);
+          changed = true;
+        }
+      }
+      if (changed) {
         localStorage.setItem(STORAGE_KEYS.LOCAL_DB, JSON.stringify(parsed));
       }
     }
@@ -392,7 +184,7 @@ function saveLocalDB(db: typeof INITIAL_SEED_DATA) {
 }
 
 /**
- * Sincroniza TODOS os dados locais para o Supabase (Faz merge seguro via Upsert)
+ * Sincroniza dados locais para o Supabase
  */
 export async function syncLocalSeedToSupabaseIfEmpty(userId: string) {
   const supabase = getSupabaseClient();
@@ -400,22 +192,26 @@ export async function syncLocalSeedToSupabaseIfEmpty(userId: string) {
 
   try {
     const db = getLocalDB();
+    const userContas = db.contas_bancarias.filter((c) => c.user_id === userId);
+    const userCartoes = db.cartoes_credito.filter((c) => c.user_id === userId);
+    const userDevedores = db.devedores.filter((d) => d.user_id === userId);
+    const userContasAPagar = db.contas_a_pagar.filter((c) => c.user_id === userId);
+    const userTransacoes = db.transacoes.filter((t) => t.user_id === userId);
 
-    // 1. Garante que os registros locais sejam enviados para a nuvem
-    if (db.contas_bancarias.length > 0) {
-      await supabase.from('contas_bancarias').upsert(db.contas_bancarias, { onConflict: 'id' });
+    if (userContas.length > 0) {
+      await supabase.from('contas_bancarias').upsert(userContas, { onConflict: 'id' });
     }
-    if (db.cartoes_credito.length > 0) {
-      await supabase.from('cartoes_credito').upsert(db.cartoes_credito, { onConflict: 'id' });
+    if (userCartoes.length > 0) {
+      await supabase.from('cartoes_credito').upsert(userCartoes, { onConflict: 'id' });
     }
-    if (db.devedores.length > 0) {
-      await supabase.from('devedores').upsert(db.devedores, { onConflict: 'id' });
+    if (userDevedores.length > 0) {
+      await supabase.from('devedores').upsert(userDevedores, { onConflict: 'id' });
     }
-    if (db.contas_a_pagar.length > 0) {
-      await supabase.from('contas_a_pagar').upsert(db.contas_a_pagar, { onConflict: 'id' });
+    if (userContasAPagar.length > 0) {
+      await supabase.from('contas_a_pagar').upsert(userContasAPagar, { onConflict: 'id' });
     }
-    if (db.transacoes.length > 0) {
-      await supabase.from('transacoes').upsert(db.transacoes, { onConflict: 'id' });
+    if (userTransacoes.length > 0) {
+      await supabase.from('transacoes').upsert(userTransacoes, { onConflict: 'id' });
     }
   } catch (e) {
     console.warn('Sync to Supabase warning:', e);
@@ -590,7 +386,7 @@ export async function registerUser(nome: string, telefone: string, senha: string
 // ----------------------------------------------------
 export async function getContasBancarias(userId: string): Promise<ContaBancaria[]> {
   const db = getLocalDB();
-  const localList = db.contas_bancarias.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+  const localList = db.contas_bancarias.filter((c) => c.user_id === userId);
 
   const supabase = getSupabaseClient();
   if (supabase) {
@@ -598,21 +394,14 @@ export async function getContasBancarias(userId: string): Promise<ContaBancaria[
       const { data, error } = await supabase
         .from('contas_bancarias')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         const remoteList = data as ContaBancaria[];
-        const map = new Map<string, ContaBancaria>();
-        localList.forEach((c) => map.set(c.id, c));
-        remoteList.forEach((c) => {
-          if (c.user_id === userId || c.user_id === SEED_USER_ID) {
-            map.set(c.id, c);
-          }
-        });
-        const merged = Array.from(map.values());
-        db.contas_bancarias = merged;
+        db.contas_bancarias = db.contas_bancarias.filter((c) => c.user_id !== userId).concat(remoteList);
         saveLocalDB(db);
-        return merged;
+        return remoteList;
       }
     } catch (e) {
       console.warn('Supabase error on getContasBancarias:', e);
@@ -677,7 +466,7 @@ export async function deleteContaBancaria(contaId: string): Promise<boolean> {
 // ----------------------------------------------------
 export async function getCartoesCredito(userId: string): Promise<CartaoCredito[]> {
   const db = getLocalDB();
-  const localList = db.cartoes_credito.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+  const localList = db.cartoes_credito.filter((c) => c.user_id === userId);
 
   const supabase = getSupabaseClient();
   if (supabase) {
@@ -685,21 +474,14 @@ export async function getCartoesCredito(userId: string): Promise<CartaoCredito[]
       const { data, error } = await supabase
         .from('cartoes_credito')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         const remoteList = data as CartaoCredito[];
-        const map = new Map<string, CartaoCredito>();
-        localList.forEach((c) => map.set(c.id, c));
-        remoteList.forEach((c) => {
-          if (c.user_id === userId || c.user_id === SEED_USER_ID) {
-            map.set(c.id, c);
-          }
-        });
-        const merged = Array.from(map.values());
-        db.cartoes_credito = merged;
+        db.cartoes_credito = db.cartoes_credito.filter((c) => c.user_id !== userId).concat(remoteList);
         saveLocalDB(db);
-        return merged;
+        return remoteList;
       }
     } catch (e) {
       console.warn('Supabase error on getCartoesCredito:', e);
@@ -764,7 +546,7 @@ export async function deleteCartaoCredito(cartaoId: string): Promise<boolean> {
 // ----------------------------------------------------
 export async function getTransacoes(userId: string): Promise<Transacao[]> {
   const db = getLocalDB();
-  const localList = db.transacoes.filter((t) => t.user_id === userId || t.user_id === SEED_USER_ID);
+  const localList = db.transacoes.filter((t) => t.user_id === userId);
 
   const supabase = getSupabaseClient();
   if (supabase) {
@@ -772,23 +554,16 @@ export async function getTransacoes(userId: string): Promise<Transacao[]> {
       const { data, error } = await supabase
         .from('transacoes')
         .select('*')
+        .eq('user_id', userId)
         .order('data', { ascending: false });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         const remoteList = data as Transacao[];
-        const map = new Map<string, Transacao>();
-        localList.forEach((t) => map.set(t.id, t));
-        remoteList.forEach((t) => {
-          if (t.user_id === userId || t.user_id === SEED_USER_ID) {
-            map.set(t.id, t);
-          }
-        });
-        const merged = Array.from(map.values()).sort(
+        db.transacoes = db.transacoes.filter((t) => t.user_id !== userId).concat(remoteList);
+        saveLocalDB(db);
+        return remoteList.sort(
           (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
         );
-        db.transacoes = merged;
-        saveLocalDB(db);
-        return merged;
       }
     } catch (e) {
       console.warn('Supabase error on getTransacoes:', e);
@@ -850,7 +625,7 @@ export async function deleteTransacao(transacaoId: string): Promise<boolean> {
 // ----------------------------------------------------
 export async function getDevedores(userId: string): Promise<Devedor[]> {
   const db = getLocalDB();
-  const localList = db.devedores.filter((d) => d.user_id === userId || d.user_id === SEED_USER_ID);
+  const localList = db.devedores.filter((d) => d.user_id === userId);
 
   const supabase = getSupabaseClient();
   if (supabase) {
@@ -858,21 +633,14 @@ export async function getDevedores(userId: string): Promise<Devedor[]> {
       const { data, error } = await supabase
         .from('devedores')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         const remoteList = data as Devedor[];
-        const map = new Map<string, Devedor>();
-        localList.forEach((d) => map.set(d.id, d));
-        remoteList.forEach((d) => {
-          if (d.user_id === userId || d.user_id === SEED_USER_ID) {
-            map.set(d.id, d);
-          }
-        });
-        const merged = Array.from(map.values());
-        db.devedores = merged;
+        db.devedores = db.devedores.filter((d) => d.user_id !== userId).concat(remoteList);
         saveLocalDB(db);
-        return merged;
+        return remoteList;
       }
     } catch (e) {
       console.warn('Supabase error on getDevedores:', e);
@@ -1038,7 +806,7 @@ export async function desfazerPagamentoDevedor(
 // ----------------------------------------------------
 export async function getContasAPagar(userId: string): Promise<ContaAPagar[]> {
   const db = getLocalDB();
-  const localList = db.contas_a_pagar.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+  const localList = db.contas_a_pagar.filter((c) => c.user_id === userId);
 
   const supabase = getSupabaseClient();
   if (supabase) {
@@ -1046,21 +814,14 @@ export async function getContasAPagar(userId: string): Promise<ContaAPagar[]> {
       const { data, error } = await supabase
         .from('contas_a_pagar')
         .select('*')
+        .eq('user_id', userId)
         .order('vencimento', { ascending: true });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         const remoteList = data as ContaAPagar[];
-        const map = new Map<string, ContaAPagar>();
-        localList.forEach((c) => map.set(c.id, c));
-        remoteList.forEach((c) => {
-          if (c.user_id === userId || c.user_id === SEED_USER_ID) {
-            map.set(c.id, c);
-          }
-        });
-        const merged = Array.from(map.values());
-        db.contas_a_pagar = merged;
+        db.contas_a_pagar = db.contas_a_pagar.filter((c) => c.user_id !== userId).concat(remoteList);
         saveLocalDB(db);
-        return merged;
+        return remoteList;
       }
     } catch (e) {
       console.warn('Supabase error on getContasAPagar:', e);
@@ -1160,6 +921,34 @@ export async function pagarParcelaContaAPagar(
   });
 
   return { updatedConta, transacao };
+}
+
+// ----------------------------------------------------
+// ZERAR TODOS OS DADOS DO USUÁRIO
+// ----------------------------------------------------
+export async function zerarTodosDados(userId: string): Promise<void> {
+  const db = getLocalDB();
+  db.contas_bancarias = db.contas_bancarias.filter((c) => c.user_id !== userId);
+  db.cartoes_credito = db.cartoes_credito.filter((c) => c.user_id !== userId);
+  db.devedores = db.devedores.filter((d) => d.user_id !== userId);
+  db.contas_a_pagar = db.contas_a_pagar.filter((c) => c.user_id !== userId);
+  db.transacoes = db.transacoes.filter((t) => t.user_id !== userId);
+  saveLocalDB(db);
+
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      await Promise.allSettled([
+        supabase.from('transacoes').delete().eq('user_id', userId),
+        supabase.from('devedores').delete().eq('user_id', userId),
+        supabase.from('contas_a_pagar').delete().eq('user_id', userId),
+        supabase.from('cartoes_credito').delete().eq('user_id', userId),
+        supabase.from('contas_bancarias').delete().eq('user_id', userId),
+      ]);
+    } catch (e) {
+      console.warn('Supabase zerarTodosDados warning:', e);
+    }
+  }
 }
 
 // ----------------------------------------------------

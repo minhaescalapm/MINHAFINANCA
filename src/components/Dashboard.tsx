@@ -61,6 +61,7 @@ export function Dashboard({
     isPrivacyMode,
     togglePrivacyMode,
     deleteTransacaoItem,
+    zerarTodosOsDados,
   } = useFinance();
 
   const [filterType, setFilterType] = useState<'todos' | 'entrada' | 'saida'>('todos');
@@ -69,6 +70,7 @@ export function Dashboard({
   const [isCheckingCloud, setIsCheckingCloud] = useState(false);
   const [copiedSql, setCopiedSql] = useState(false);
   const [isForcingSync, setIsForcingSync] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     checkConnection();
@@ -663,6 +665,31 @@ export function Dashboard({
                         <span>Copiar SQL</span>
                       </>
                     )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Danger Zone: Zerar Dados */}
+              <div className="bg-rose-950/20 p-4 rounded-xl border border-rose-900/40 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-rose-300">Zerar Todos os Valores e Cadastros</h4>
+                    <p className="text-[11px] text-zinc-400">Limpa todas as contas, cartões, dívidas e transações para começar do zero.</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (window.confirm('Tem certeza que deseja zerar todos os valores, contas, cartões e registros? Esta ação não pode ser desfeita.')) {
+                        setIsResetting(true);
+                        await zerarTodosOsDados();
+                        setIsResetting(false);
+                        setIsCloudModalOpen(false);
+                      }
+                    }}
+                    disabled={isResetting}
+                    className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                    <span>{isResetting ? 'Zerando...' : 'Zerar Tudo'}</span>
                   </button>
                 </div>
               </div>
