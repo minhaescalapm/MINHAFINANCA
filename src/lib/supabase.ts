@@ -370,21 +370,13 @@ function getLocalDB(): typeof INITIAL_SEED_DATA {
   }
   try {
     const parsed = JSON.parse(data);
-    // Ensure the master user 21975151937 is always present with full access
+    // Ensure the master user is always present in usuarios list
     if (parsed && Array.isArray(parsed.usuarios)) {
       const hasMaster = parsed.usuarios.some(
         (u: Usuario) => u.telefone.replace(/\D/g, '') === '21975151937'
       );
       if (!hasMaster) {
         parsed.usuarios.unshift(INITIAL_SEED_DATA.usuarios[0]);
-        localStorage.setItem(STORAGE_KEYS.LOCAL_DB, JSON.stringify(parsed));
-      }
-    }
-    // Ensure devedores have MAICON / valor_parcela
-    if (parsed && Array.isArray(parsed.devedores)) {
-      const hasMaicon = parsed.devedores.some((d: Devedor) => d.nome.toUpperCase().includes('MAICON'));
-      if (!hasMaicon) {
-        parsed.devedores.unshift(INITIAL_SEED_DATA.devedores[0]);
         localStorage.setItem(STORAGE_KEYS.LOCAL_DB, JSON.stringify(parsed));
       }
     }
