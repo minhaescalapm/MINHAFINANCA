@@ -182,12 +182,12 @@ export function DevedoresView() {
   // Open Create Modal
   const handleOpenNew = () => {
     setEditingDevedorId(null);
-    setNome('MAICON');
-    setTelefone('(11) 98888-7777');
-    setItemServico('ZAFIRA PRATA');
-    setValorParcelaStr('140,00');
-    setQtdParcelas(300);
-    setValorTotalStr('42.000,00');
+    setNome('');
+    setTelefone('');
+    setItemServico('');
+    setValorParcelaStr('');
+    setQtdParcelas(1);
+    setValorTotalStr('');
     setDataInicio(new Date().toISOString().split('T')[0]);
     setContaDestinoId(contas[0]?.id || '');
     setIsNewModalOpen(true);

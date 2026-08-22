@@ -589,6 +589,9 @@ export async function registerUser(nome: string, telefone: string, senha: string
 // CONTAS BANCÁRIAS
 // ----------------------------------------------------
 export async function getContasBancarias(userId: string): Promise<ContaBancaria[]> {
+  const db = getLocalDB();
+  const localList = db.contas_bancarias.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -597,35 +600,50 @@ export async function getContasBancarias(userId: string): Promise<ContaBancaria[
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        const list = data as ContaBancaria[];
-        const filtered = list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
-        // Atualiza cache local
-        const db = getLocalDB();
-        db.contas_bancarias = filtered;
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const remoteList = data as ContaBancaria[];
+        const map = new Map<string, ContaBancaria>();
+        localList.forEach((c) => map.set(c.id, c));
+        remoteList.forEach((c) => {
+          if (c.user_id === userId || c.user_id === SEED_USER_ID) {
+            map.set(c.id, c);
+          }
+        });
+        const merged = Array.from(map.values());
+        db.contas_bancarias = merged;
         saveLocalDB(db);
-        return filtered;
+        return merged;
       }
     } catch (e) {
       console.warn('Supabase error on getContasBancarias:', e);
     }
   }
 
-  const db = getLocalDB();
-  return db.contas_bancarias.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+  return localList;
 }
 
 export async function saveContaBancaria(conta: Omit<ContaBancaria, 'id' | 'created_at'> & { id?: string }): Promise<ContaBancaria> {
-  const supabase = getSupabaseClient();
   const id = conta.id || `cta_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const created_at = new Date().toISOString();
   const finalConta: ContaBancaria = { ...conta, id, created_at };
 
+  // 1. Salva imediatamente no LocalDB para resposta instantânea e garantida
+  const db = getLocalDB();
+  const idx = db.contas_bancarias.findIndex((c) => c.id === id);
+  if (idx >= 0) {
+    db.contas_bancarias[idx] = finalConta;
+  } else {
+    db.contas_bancarias.unshift(finalConta);
+  }
+  saveLocalDB(db);
+
+  // 2. Sincroniza com o Supabase
+  const supabase = getSupabaseClient();
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from('contas_bancarias')
-        .upsert([finalConta])
+        .upsert([finalConta], { onConflict: 'id' })
         .select()
         .single();
 
@@ -635,18 +653,14 @@ export async function saveContaBancaria(conta: Omit<ContaBancaria, 'id' | 'creat
     }
   }
 
-  const db = getLocalDB();
-  const idx = db.contas_bancarias.findIndex((c) => c.id === id);
-  if (idx >= 0) {
-    db.contas_bancarias[idx] = finalConta;
-  } else {
-    db.contas_bancarias.unshift(finalConta);
-  }
-  saveLocalDB(db);
   return finalConta;
 }
 
 export async function deleteContaBancaria(contaId: string): Promise<boolean> {
+  const db = getLocalDB();
+  db.contas_bancarias = db.contas_bancarias.filter((c) => c.id !== contaId);
+  saveLocalDB(db);
+
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -655,9 +669,6 @@ export async function deleteContaBancaria(contaId: string): Promise<boolean> {
       console.warn('Supabase deleteContaBancaria error:', e);
     }
   }
-  const db = getLocalDB();
-  db.contas_bancarias = db.contas_bancarias.filter((c) => c.id !== contaId);
-  saveLocalDB(db);
   return true;
 }
 
@@ -665,6 +676,9 @@ export async function deleteContaBancaria(contaId: string): Promise<boolean> {
 // CARTÕES DE CRÉDITO
 // ----------------------------------------------------
 export async function getCartoesCredito(userId: string): Promise<CartaoCredito[]> {
+  const db = getLocalDB();
+  const localList = db.cartoes_credito.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -673,34 +687,50 @@ export async function getCartoesCredito(userId: string): Promise<CartaoCredito[]
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        const list = data as CartaoCredito[];
-        const filtered = list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
-        const db = getLocalDB();
-        db.cartoes_credito = filtered;
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const remoteList = data as CartaoCredito[];
+        const map = new Map<string, CartaoCredito>();
+        localList.forEach((c) => map.set(c.id, c));
+        remoteList.forEach((c) => {
+          if (c.user_id === userId || c.user_id === SEED_USER_ID) {
+            map.set(c.id, c);
+          }
+        });
+        const merged = Array.from(map.values());
+        db.cartoes_credito = merged;
         saveLocalDB(db);
-        return filtered;
+        return merged;
       }
     } catch (e) {
       console.warn('Supabase error on getCartoesCredito:', e);
     }
   }
 
-  const db = getLocalDB();
-  return db.cartoes_credito.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+  return localList;
 }
 
 export async function saveCartaoCredito(cartao: Omit<CartaoCredito, 'id' | 'created_at'> & { id?: string }): Promise<CartaoCredito> {
-  const supabase = getSupabaseClient();
   const id = cartao.id || `crt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const created_at = new Date().toISOString();
   const finalCartao: CartaoCredito = { ...cartao, id, created_at };
 
+  // 1. Salva imediatamente no LocalDB
+  const db = getLocalDB();
+  const idx = db.cartoes_credito.findIndex((c) => c.id === id);
+  if (idx >= 0) {
+    db.cartoes_credito[idx] = finalCartao;
+  } else {
+    db.cartoes_credito.unshift(finalCartao);
+  }
+  saveLocalDB(db);
+
+  // 2. Sincroniza com o Supabase
+  const supabase = getSupabaseClient();
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from('cartoes_credito')
-        .upsert([finalCartao])
+        .upsert([finalCartao], { onConflict: 'id' })
         .select()
         .single();
 
@@ -710,18 +740,14 @@ export async function saveCartaoCredito(cartao: Omit<CartaoCredito, 'id' | 'crea
     }
   }
 
-  const db = getLocalDB();
-  const idx = db.cartoes_credito.findIndex((c) => c.id === id);
-  if (idx >= 0) {
-    db.cartoes_credito[idx] = finalCartao;
-  } else {
-    db.cartoes_credito.unshift(finalCartao);
-  }
-  saveLocalDB(db);
   return finalCartao;
 }
 
 export async function deleteCartaoCredito(cartaoId: string): Promise<boolean> {
+  const db = getLocalDB();
+  db.cartoes_credito = db.cartoes_credito.filter((c) => c.id !== cartaoId);
+  saveLocalDB(db);
+
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -730,9 +756,6 @@ export async function deleteCartaoCredito(cartaoId: string): Promise<boolean> {
       console.warn('Supabase deleteCartaoCredito error:', e);
     }
   }
-  const db = getLocalDB();
-  db.cartoes_credito = db.cartoes_credito.filter((c) => c.id !== cartaoId);
-  saveLocalDB(db);
   return true;
 }
 
@@ -740,6 +763,9 @@ export async function deleteCartaoCredito(cartaoId: string): Promise<boolean> {
 // TRANSAÇÕES (FLUXO DE CAIXA)
 // ----------------------------------------------------
 export async function getTransacoes(userId: string): Promise<Transacao[]> {
+  const db = getLocalDB();
+  const localList = db.transacoes.filter((t) => t.user_id === userId || t.user_id === SEED_USER_ID);
+
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -748,36 +774,49 @@ export async function getTransacoes(userId: string): Promise<Transacao[]> {
         .select('*')
         .order('data', { ascending: false });
 
-      if (!error && data) {
-        const list = data as Transacao[];
-        const filtered = list.filter((t) => t.user_id === userId || t.user_id === SEED_USER_ID);
-        const db = getLocalDB();
-        db.transacoes = filtered;
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const remoteList = data as Transacao[];
+        const map = new Map<string, Transacao>();
+        localList.forEach((t) => map.set(t.id, t));
+        remoteList.forEach((t) => {
+          if (t.user_id === userId || t.user_id === SEED_USER_ID) {
+            map.set(t.id, t);
+          }
+        });
+        const merged = Array.from(map.values()).sort(
+          (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
+        );
+        db.transacoes = merged;
         saveLocalDB(db);
-        return filtered;
+        return merged;
       }
     } catch (e) {
       console.warn('Supabase error on getTransacoes:', e);
     }
   }
 
-  const db = getLocalDB();
-  return (db.transacoes.filter((t) => t.user_id === userId || t.user_id === SEED_USER_ID) || []).sort(
+  return localList.sort(
     (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
   );
 }
 
 export async function createTransacao(transacao: Omit<Transacao, 'id' | 'created_at'> & { id?: string }): Promise<Transacao> {
-  const supabase = getSupabaseClient();
   const id = transacao.id || `trx_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const created_at = new Date().toISOString();
   const finalTrx: Transacao = { ...transacao, id, created_at };
 
+  // 1. Salva imediatamente no LocalDB
+  const db = getLocalDB();
+  db.transacoes.unshift(finalTrx);
+  saveLocalDB(db);
+
+  // 2. Sincroniza com o Supabase
+  const supabase = getSupabaseClient();
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from('transacoes')
-        .upsert([finalTrx])
+        .upsert([finalTrx], { onConflict: 'id' })
         .select()
         .single();
 
@@ -787,13 +826,14 @@ export async function createTransacao(transacao: Omit<Transacao, 'id' | 'created
     }
   }
 
-  const db = getLocalDB();
-  db.transacoes.unshift(finalTrx);
-  saveLocalDB(db);
   return finalTrx;
 }
 
 export async function deleteTransacao(transacaoId: string): Promise<boolean> {
+  const db = getLocalDB();
+  db.transacoes = db.transacoes.filter((t) => t.id !== transacaoId);
+  saveLocalDB(db);
+
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -802,9 +842,6 @@ export async function deleteTransacao(transacaoId: string): Promise<boolean> {
       console.warn('Supabase deleteTransacao error:', e);
     }
   }
-  const db = getLocalDB();
-  db.transacoes = db.transacoes.filter((t) => t.id !== transacaoId);
-  saveLocalDB(db);
   return true;
 }
 
@@ -812,6 +849,9 @@ export async function deleteTransacao(transacaoId: string): Promise<boolean> {
 // DEVEDORES (CONTAS A RECEBER)
 // ----------------------------------------------------
 export async function getDevedores(userId: string): Promise<Devedor[]> {
+  const db = getLocalDB();
+  const localList = db.devedores.filter((d) => d.user_id === userId || d.user_id === SEED_USER_ID);
+
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -820,34 +860,50 @@ export async function getDevedores(userId: string): Promise<Devedor[]> {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data) {
-        const list = data as Devedor[];
-        const filtered = list.filter((d) => d.user_id === userId || d.user_id === SEED_USER_ID);
-        const db = getLocalDB();
-        db.devedores = filtered;
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const remoteList = data as Devedor[];
+        const map = new Map<string, Devedor>();
+        localList.forEach((d) => map.set(d.id, d));
+        remoteList.forEach((d) => {
+          if (d.user_id === userId || d.user_id === SEED_USER_ID) {
+            map.set(d.id, d);
+          }
+        });
+        const merged = Array.from(map.values());
+        db.devedores = merged;
         saveLocalDB(db);
-        return filtered;
+        return merged;
       }
     } catch (e) {
       console.warn('Supabase error on getDevedores:', e);
     }
   }
 
-  const db = getLocalDB();
-  return db.devedores.filter((d) => d.user_id === userId || d.user_id === SEED_USER_ID);
+  return localList;
 }
 
 export async function saveDevedor(devedor: Omit<Devedor, 'id' | 'created_at'> & { id?: string }): Promise<Devedor> {
-  const supabase = getSupabaseClient();
   const id = devedor.id || `dev_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const created_at = new Date().toISOString();
   const finalDevedor: Devedor = { ...devedor, id, created_at };
 
+  // 1. Salva imediatamente no LocalDB
+  const db = getLocalDB();
+  const idx = db.devedores.findIndex((d) => d.id === id);
+  if (idx >= 0) {
+    db.devedores[idx] = finalDevedor;
+  } else {
+    db.devedores.unshift(finalDevedor);
+  }
+  saveLocalDB(db);
+
+  // 2. Sincroniza com o Supabase
+  const supabase = getSupabaseClient();
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from('devedores')
-        .upsert([finalDevedor])
+        .upsert([finalDevedor], { onConflict: 'id' })
         .select()
         .single();
 
@@ -857,18 +913,14 @@ export async function saveDevedor(devedor: Omit<Devedor, 'id' | 'created_at'> & 
     }
   }
 
-  const db = getLocalDB();
-  const idx = db.devedores.findIndex((d) => d.id === id);
-  if (idx >= 0) {
-    db.devedores[idx] = finalDevedor;
-  } else {
-    db.devedores.unshift(finalDevedor);
-  }
-  saveLocalDB(db);
   return finalDevedor;
 }
 
 export async function deleteDevedor(devedorId: string): Promise<boolean> {
+  const db = getLocalDB();
+  db.devedores = db.devedores.filter((d) => d.id !== devedorId);
+  saveLocalDB(db);
+
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -877,9 +929,6 @@ export async function deleteDevedor(devedorId: string): Promise<boolean> {
       console.warn('Supabase deleteDevedor error:', e);
     }
   }
-  const db = getLocalDB();
-  db.devedores = db.devedores.filter((d) => d.id !== devedorId);
-  saveLocalDB(db);
   return true;
 }
 
@@ -988,6 +1037,9 @@ export async function desfazerPagamentoDevedor(
 // CONTAS A PAGAR
 // ----------------------------------------------------
 export async function getContasAPagar(userId: string): Promise<ContaAPagar[]> {
+  const db = getLocalDB();
+  const localList = db.contas_a_pagar.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -996,34 +1048,50 @@ export async function getContasAPagar(userId: string): Promise<ContaAPagar[]> {
         .select('*')
         .order('vencimento', { ascending: true });
 
-      if (!error && data) {
-        const list = data as ContaAPagar[];
-        const filtered = list.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
-        const db = getLocalDB();
-        db.contas_a_pagar = filtered;
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const remoteList = data as ContaAPagar[];
+        const map = new Map<string, ContaAPagar>();
+        localList.forEach((c) => map.set(c.id, c));
+        remoteList.forEach((c) => {
+          if (c.user_id === userId || c.user_id === SEED_USER_ID) {
+            map.set(c.id, c);
+          }
+        });
+        const merged = Array.from(map.values());
+        db.contas_a_pagar = merged;
         saveLocalDB(db);
-        return filtered;
+        return merged;
       }
     } catch (e) {
       console.warn('Supabase error on getContasAPagar:', e);
     }
   }
 
-  const db = getLocalDB();
-  return db.contas_a_pagar.filter((c) => c.user_id === userId || c.user_id === SEED_USER_ID);
+  return localList;
 }
 
 export async function saveContaAPagar(conta: Omit<ContaAPagar, 'id' | 'created_at'> & { id?: string }): Promise<ContaAPagar> {
-  const supabase = getSupabaseClient();
   const id = conta.id || `cap_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const created_at = new Date().toISOString();
   const finalConta: ContaAPagar = { ...conta, id, created_at };
 
+  // 1. Salva imediatamente no LocalDB
+  const db = getLocalDB();
+  const idx = db.contas_a_pagar.findIndex((c) => c.id === id);
+  if (idx >= 0) {
+    db.contas_a_pagar[idx] = finalConta;
+  } else {
+    db.contas_a_pagar.unshift(finalConta);
+  }
+  saveLocalDB(db);
+
+  // 2. Sincroniza com o Supabase
+  const supabase = getSupabaseClient();
   if (supabase) {
     try {
       const { data, error } = await supabase
         .from('contas_a_pagar')
-        .upsert([finalConta])
+        .upsert([finalConta], { onConflict: 'id' })
         .select()
         .single();
 
@@ -1033,18 +1101,14 @@ export async function saveContaAPagar(conta: Omit<ContaAPagar, 'id' | 'created_a
     }
   }
 
-  const db = getLocalDB();
-  const idx = db.contas_a_pagar.findIndex((c) => c.id === id);
-  if (idx >= 0) {
-    db.contas_a_pagar[idx] = finalConta;
-  } else {
-    db.contas_a_pagar.unshift(finalConta);
-  }
-  saveLocalDB(db);
   return finalConta;
 }
 
 export async function deleteContaAPagar(contaId: string): Promise<boolean> {
+  const db = getLocalDB();
+  db.contas_a_pagar = db.contas_a_pagar.filter((c) => c.id !== contaId);
+  saveLocalDB(db);
+
   const supabase = getSupabaseClient();
   if (supabase) {
     try {
@@ -1053,9 +1117,6 @@ export async function deleteContaAPagar(contaId: string): Promise<boolean> {
       console.warn('Supabase deleteContaAPagar error:', e);
     }
   }
-  const db = getLocalDB();
-  db.contas_a_pagar = db.contas_a_pagar.filter((c) => c.id !== contaId);
-  saveLocalDB(db);
   return true;
 }
 

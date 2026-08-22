@@ -6,6 +6,7 @@ import {
   Receipt,
   Plus,
   Trash2,
+  Edit2,
   Calendar,
   AlertCircle,
   CheckCircle2,
@@ -36,6 +37,7 @@ export function ContasAPagarView() {
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
   const [selectedConta, setSelectedConta] = useState<ContaAPagar | null>(null);
+  const [editingContaId, setEditingContaId] = useState<string | null>(null);
 
   // Form New Conta a Pagar state
   const [descricao, setDescricao] = useState('');
@@ -43,7 +45,7 @@ export function ContasAPagarView() {
   const [valorTotalStr, setValorTotalStr] = useState('');
   const [qtdPrestacoes, setQtdPrestacoes] = useState(12);
   const [vencimento, setVencimento] = useState(new Date().toISOString().split('T')[0]);
-  const [categoria, setCategoria] = useState('Veículos & Frota');
+  const [categoria, setCategoria] = useState('Outros');
   const [contaPadraoId, setContaPadraoId] = useState(contas[0]?.id || '');
 
   // Form Pagar Parcela state
@@ -60,13 +62,28 @@ export function ContasAPagarView() {
   };
 
   const handleOpenNew = () => {
-    setDescricao('Financiamento de Veículo / Aluguel');
-    setFornecedorCredor('Banco BV / Imobiliária');
-    setValorTotalStr('48.000,00');
-    setQtdPrestacoes(24);
+    setEditingContaId(null);
+    setDescricao('');
+    setFornecedorCredor('');
+    setValorTotalStr('');
+    setQtdPrestacoes(1);
     setVencimento(new Date().toISOString().split('T')[0]);
-    setCategoria('Veículos & Frota');
+    setCategoria('Outros');
     setContaPadraoId(contas[0]?.id || '');
+    setIsNewModalOpen(true);
+  };
+
+  const handleOpenEdit = (cap: ContaAPagar) => {
+    setEditingContaId(cap.id);
+    setDescricao(cap.descricao);
+    setFornecedorCredor(cap.fornecedor_credor || '');
+    setValorTotalStr(
+      cap.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    );
+    setQtdPrestacoes(cap.qtd_prestacoes || 1);
+    setVencimento(cap.vencimento || new Date().toISOString().split('T')[0]);
+    setCategoria(cap.categoria || 'Outros');
+    setContaPadraoId(cap.conta_padrao_id || contas[0]?.id || '');
     setIsNewModalOpen(true);
   };
 
@@ -77,18 +94,21 @@ export function ContasAPagarView() {
     const valorTotal =
       parseFloat(valorTotalStr.replace(/\./g, '').replace(',', '.')) || 0;
 
+    const existing = editingContaId ? contasAPagar.find((c) => c.id === editingContaId) : null;
+
     await addContaPagar({
+      id: editingContaId || undefined,
       user_id: user.id,
       descricao: descricao.trim(),
       fornecedor_credor: fornecedorCredor.trim() || 'Fornecedor',
       valor_total: valorTotal,
       qtd_prestacoes: Math.max(1, Number(qtdPrestacoes)),
-      prestacoes_pagas: 0,
-      valor_pago: 0,
+      prestacoes_pagas: existing ? existing.prestacoes_pagas : 0,
+      valor_pago: existing ? existing.valor_pago : 0,
       vencimento,
       categoria,
       conta_padrao_id: contaPadraoId || contas[0]?.id,
-      status: 'pendente',
+      status: existing ? existing.status : 'pendente',
     });
 
     setIsNewModalOpen(false);
@@ -287,17 +307,26 @@ export function ContasAPagarView() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      if (confirm(`Deseja excluir "${cap.descricao}"?`)) {
-                        deleteContaPagarItem(cap.id);
-                      }
-                    }}
-                    className="p-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-500 hover:text-rose-400 transition-colors shrink-0"
-                    title="Excluir Conta a Pagar"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => handleOpenEdit(cap)}
+                      className="p-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-400 hover:text-emerald-400 transition-colors"
+                      title="Editar Conta a Pagar"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm(`Deseja excluir "${cap.descricao}"?`)) {
+                          deleteContaPagarItem(cap.id);
+                        }
+                      }}
+                      className="p-1.5 rounded-lg bg-zinc-950 border border-zinc-800 text-zinc-500 hover:text-rose-400 transition-colors"
+                      title="Excluir Conta a Pagar"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Progress Bar */}
@@ -378,7 +407,9 @@ export function ContasAPagarView() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl p-6 space-y-4 my-6">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-              <h3 className="text-base font-bold text-zinc-100">Nova Conta a Pagar</h3>
+              <h3 className="text-base font-bold text-zinc-100">
+                {editingContaId ? 'Editar Conta a Pagar' : 'Nova Conta a Pagar'}
+              </h3>
               <button onClick={() => setIsNewModalOpen(false)} className="text-zinc-400 hover:text-zinc-200">
                 <X className="w-5 h-5" />
               </button>
@@ -486,7 +517,7 @@ export function ContasAPagarView() {
                   type="submit"
                   className="flex-1 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs shadow-lg shadow-rose-950/30"
                 >
-                  Cadastrar Conta
+                  {editingContaId ? 'Salvar Alterações' : 'Cadastrar Conta'}
                 </button>
               </div>
             </form>
